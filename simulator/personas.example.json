@@ -1,0 +1,74 @@
+[
+  {
+    "id": "persona_001",
+    "general_info": {
+      "gender": "Female",
+      "age": "18-34",
+      "education": "Master's",
+      "english": "Proficient"
+    },
+    "ai_experience": {
+      "familiarity": "occasionally",
+      "trust": "Neutral",
+      "human-likeliness": "Rarely"
+    },
+    "traits": {
+      "frustration": "Neutral",
+      "cognition": "Agree"
+    }
+  },
+  {
+    "id": "persona_002",
+    "general_info": {
+      "gender": "Male",
+      "age": "34-55",
+      "education": "PhD",
+      "english": "Advanced"
+    },
+    "ai_experience": {
+      "familiarity": "frequently",
+      "trust": "Disagree",
+      "human-likeliness": "Not at all"
+    },
+    "traits": {
+      "frustration": "Disagree",
+      "cognition": "Agree"
+    }
+  },
+  {
+    "id": "persona_003",
+    "general_info": {
+      "gender": "Female",
+      "age": "34-55",
+      "education": "PhD",
+      "english": "Proficient"
+    },
+    "ai_experience": {
+      "familiarity": "rarely",
+      "trust": "Neutral",
+      "human-likeliness": "Sometimes"
+    },
+    "traits": {
+      "frustration": "Agree",
+      "cognition": "Neutral"
+    }
+  },
+  {
+    "id": "persona_004",
+    "general_info": {
+      "gender": "Male",
+      "age": "34-55",
+      "education": "Master's",
+      "english": "Advanced"
+    },
+    "ai_experience": {
+      "familiarity": "expert",
+      "trust": "Disagree",
+      "human-likeliness": "Rarely"
+    },
+    "traits": {
+      "frustration": "Disagree",
+      "cognition": "Strongly Agree"
+    }
+  }
+]
