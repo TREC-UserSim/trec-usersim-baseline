@@ -428,7 +428,26 @@ class UserSimulator:
                     metrics["total_turns"] = total_turns
 
                     # Check conversation status
-                    if response.utterance is None:
+                    if response.is_complete:
+                        # Run completed (428 status code received)
+                        logger.info("Run completed (428 status received)")
+                        conversation_active = False
+
+                    elif response.is_new_conversation:
+                        # New conversation started (201 status code received)
+                        logger.info("New conversation started (201 status received)")
+                        self.end_conversation()
+                        conversation_count += 1
+                        metrics["total_conversations"] = conversation_count
+
+                        # Initialize new conversation state
+                        self.initiate_conversation(run_id, response.conversation_id, response.goal)
+                        
+                        # Add agent message if present
+                        if response.utterance is not None:
+                            self.state.add_agent_message(response.utterance)
+
+                    elif response.utterance is None:
                         # New goal/scenario starting
                         logger.info(
                             f"New goal initiated. Goal: {response.goal.target}"

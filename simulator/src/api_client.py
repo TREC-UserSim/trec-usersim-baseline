@@ -92,6 +92,8 @@ class APIResponse:
     conversation_id: str
     goal: Goal
     utterance: Optional[Utterance] = None
+    is_complete: bool = False
+    is_new_conversation: bool = False
 
     @classmethod
     def from_dict(cls, data: Dict[str, Any]) -> "APIResponse":
@@ -112,6 +114,8 @@ class APIResponse:
             conversation_id=data.get("conversation_id", ""),
             goal=goal,
             utterance=utterance,
+            is_complete=data.get("is_complete", False),
+            is_new_conversation=data.get("is_new_conversation", False),
         )
 
 
@@ -234,6 +238,25 @@ class SimulatorAPIClient:
         logger.debug(f"Continuing conversation for run: {run_id}")
         try:
             response = self.session.post(url, json=payload, timeout=self.timeout)
+            
+            # Handle 428 status code as run completion
+            if response.status_code == 428:
+                logger.info(f"Run completed (428 status): {run_id}")
+                return APIResponse(
+                    conversation_id="",
+                    goal=Goal(id="", context="", target=""),
+                    utterance=None,
+                    is_complete=True,
+                )
+            
+            # Handle 201 status code as new conversation start
+            if response.status_code == 201:
+                logger.info(f"New conversation started (201 status): {run_id}")
+                data = response.json()
+                api_response = APIResponse.from_dict(data)
+                api_response.is_new_conversation = True
+                return api_response
+            
             response.raise_for_status()
             data = response.json()
             logger.debug(f"Successfully continued conversation for run: {run_id}")
