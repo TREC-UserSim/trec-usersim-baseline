@@ -1,4 +1,4 @@
-# TREC UserSim - Baseline Simulator
+# TREC 2026 UserSim Track Baseline 
 
 > [!WARNING]
 > This project is in early stage. Expect changes and improvements as development continues.
