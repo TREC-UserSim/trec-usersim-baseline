@@ -18,7 +18,8 @@ logger = logging.getLogger(__name__)
 base_url = os.getenv("BASE_URL") 
 team_name = os.getenv("TEAM_NAME")
 auth_token = os.getenv("AUTH_TOKEN")
-
+llm_model = os.getenv("LLM_MODEL")
+llm_api_base = os.getenv("LLM_API_BASE")
 
 def main():
     """Run a single conversation using LLM strategy."""
@@ -34,8 +35,8 @@ def main():
     persona = persona_registry.get_persona("persona_001")
 
     response_strategy = LLMStrategy(
-        model="ollama/qwen3:0.6b",
-        api_base="http://localhost:11434"
+        model=llm_model,
+        api_base=llm_api_base
         )
 
     user_simulator = UserSimulator(
