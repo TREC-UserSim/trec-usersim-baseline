@@ -4,20 +4,15 @@
 > This project is in early stage. Expect changes and improvements as development continues.
 
 **Setup.**  
-1. Clone and run the infrastructure. 
-```
-git clone https://github.com/irgroup/trec-usersim-infra
-cd trec-usersim-infra/
-docker compose up -d 
-```
+1. Run the backend infrastructure by following the setup guide in https://github.com/irgroup/trec-usersim-infra. 
 
-2. Prepare the `.env` (adapt the `.env.example` in `trec-usersim-infra/`). Specifically, add `HF_TOKEN`, `BASE_URL`, `TEAM_NAME` and update `ADMIN_NAME` and `ADMIN_PASSWORD` if needed.
+2. Create virtual environment and install the required packages in `simulator/requirements.txt`
+
+3. Create a `.env` file (adapt `.env.example` in this repository). Specifically, make sure that `ADMIN_NAME` and `ADMIN_PASSWORD` are the same as in the `.env` file of `trec-usersim-infra/`, and add `BASE_URL` (address of the backend infrastructure) and assign a team name to `TEAM_NAME`.
  
-3. Create virtual environment and install the required packages in `simulator/requirements.txt`
-
-4. Issue an authentication token and write it to the .env file with `issue_token.py`.
+4. Issue an authentication token and write it to the `.env` file with `issue_token.py` (`AUTH_TOKEN` will be added to `.env`).
 ```
-python -m simulator.examples.issue_token.py
+python -m simulator.examples.issue_token
 ```
 
 **Example #1.** 
@@ -26,10 +21,16 @@ Run a single conversation with `single_conversation.py`.
 python -m simulator.examples.single_conversation
 ```
 
+Before running the script, make sure you have access to an LLM and update the variables `LLM_MODEL` and `LLM_API_BASE` in `.env` accordingly. Alternatively, implement your own LLMStrategy.
+
 **Example #2.**
 Complete a run submission with `complete_run.py`.
 ```
 python -m simulator.examples.complete_run
 ```
+This example will make use of a simulator with predefined utterances.
+
 > [!NOTE]
-> The wiki features a [sequence diagram of a run submission](https://github.com/irgroup/trec-usersim-baseline/wiki/Workflow-of-a-run-submission).
+> The documentation features:
+> - [a sequence diagram of a run submission](./docs/sequence.md)
+> - [the conceptual model of user simulator](./docs/user_simulator.md).
