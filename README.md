@@ -1,4 +1,4 @@
-# TREC 2026 UserSim Track Baseline 
+# TREC UserSim Baseline Simulator
 
 > [!WARNING]
 > This project is in early stage. Expect changes and improvements as development continues.
@@ -33,4 +33,4 @@ This example will make use of a simulator with predefined utterances.
 > [!NOTE]
 > The documentation features:
 > - [a sequence diagram of a run submission](./docs/sequence.md)
-> - [the conceptual model of user simulator](./docs/user_simulator.md).
+> - [the conceptual model of the user simulator](./docs/user_simulator.md).
