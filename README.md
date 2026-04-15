@@ -6,7 +6,7 @@
 **Setup.**  
 1. Create virtual environment and install the required packages in `simulator/requirements.txt`
 
-2. Create a `.env` file (adapt `.env.example` in this repository). Specifically, add `BASE_URL` (address of the backend infrastructure) and assign a team name to `TEAM_NAME`. Upon registration, you receive an authentication token, make sure to include it in `AUTH_TOKEN`.
+2. Create a `.env` file (adapt `.env.example` in this repository). Specifically, add `BASE_URL` (address of the backend infrastructure) and assign your team name to `TEAM_NAME`. Upon registration, you receive an authentication token, make sure to include it in `AUTH_TOKEN`.
 
 **Example #1.** 
 Run a single conversation with `single_conversation.py`.
