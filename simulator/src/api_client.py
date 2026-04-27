@@ -162,12 +162,13 @@ class SimulatorAPIClient:
                 {"Authorization": f"Bearer {self.auth_token}"}
             )
 
-    def start_run(self, run_id: str, description: str) -> APIResponse:
+    def start_run(self, run_id: str, description: str, debug: bool = False) -> APIResponse:
         """Start a new conversation run.
 
         Args:
-            run_id: Unique identifier for the run
-            description: Description of the run
+            run_id: Unique identifier for the run.
+            description: Description of the run.
+            debug: Whether to enable debug mode. Defaults to False.
 
         Returns:
             APIResponse with conversation_id, goal, and initial utterance
@@ -175,7 +176,11 @@ class SimulatorAPIClient:
         Raises:
             requests.RequestException: If the API request fails
         """
-        url = f"{self.base_url}/run/start"
+        if debug:
+            url = f"{self.base_url}/debug/start"
+        else:
+            url = f"{self.base_url}/run/start"
+
         payload = {
             "run_id": run_id,
             "description": description,
@@ -200,16 +205,21 @@ class SimulatorAPIClient:
         sources: Optional[List[Source]] = None,
         annotations: Optional[Dict[str, Any]] = None,
         is_final: bool = False,
+        debug: bool = False,
     ) -> APIResponse:
         """Continue an ongoing conversation.
 
         Args:
-            run_id: ID of the run being continued
-            response_text: User's response text
-            conversation_id: ID of the conversation
-            sources: Optional list of Source objects referenced by the user
-            annotations: Optional annotations for the response
-            is_final: Whether this is the final user utterance
+            run_id: ID of the run being continued.
+            response_text: User's response text.
+            conversation_id: ID of the conversation.
+            sources: Optional list of Source objects referenced by the user.
+              Defaults to None.
+            annotations: Optional annotations for the response. Defaults to
+              None.
+            is_final: Whether this is the final user utterance. Defaults to
+              False.
+            debug: Whether to enable debug mode. Defaults to False.
 
         Returns:
             APIResponse with the next agent utterance
@@ -217,7 +227,10 @@ class SimulatorAPIClient:
         Raises:
             requests.RequestException: If the API request fails
         """
-        url = f"{self.base_url}/run/continue"
+        if debug:
+            url = f"{self.base_url}/debug/continue"
+        else:
+            url = f"{self.base_url}/run/continue"
 
         # Create user utterance with proper structure
         user_utterance = Utterance(
@@ -265,11 +278,12 @@ class SimulatorAPIClient:
             logger.error(f"Failed to continue conversation for run {run_id}: {e}")
             raise
 
-    def get_session(self, run_id: str) -> List[Utterance]:
+    def get_session(self, run_id: str, debug: bool = False) -> List[Utterance]:
         """Retrieve the conversation history for a session.
 
         Args:
             run_id: ID of the run
+            debug: Whether to enable debug mode. Defaults to False.
 
         Returns:
             List of Utterance objects for the current session
@@ -277,7 +291,11 @@ class SimulatorAPIClient:
         Raises:
             requests.RequestException: If the API request fails
         """
-        url = f"{self.base_url}/run/session"
+        if debug:
+            url = f"{self.base_url}/debug/session"
+        else:
+            url = f"{self.base_url}/run/session"
+
         params = {"run_id": run_id}
 
         logger.debug(f"Retrieving session for run: {run_id}")
@@ -294,19 +312,24 @@ class SimulatorAPIClient:
             logger.error(f"Failed to retrieve session for run {run_id}: {e}")
             raise
 
-    def get_status(self, run_id: str) -> Dict[str, Any]:
+    def get_status(self, run_id: str, debug: bool = False) -> Dict[str, Any]:
         """Get the status and progress of a run.
 
         Args:
-            run_id: ID of the run
+            run_id: ID of the run.
+            debug: Whether to enable debug mode. Defaults to False.
 
         Returns:
-            Dictionary containing status information
+            Dictionary containing status information.
 
         Raises:
-            requests.RequestException: If the API request fails
+            requests.RequestException: If the API request fails.
         """
-        url = f"{self.base_url}/run/status"
+        if debug:
+            url = f"{self.base_url}/debug/status"
+        else:
+            url = f"{self.base_url}/run/status"
+
         params = {"run_id": run_id}
 
         logger.debug(f"Retrieving status for run: {run_id}")
@@ -322,19 +345,24 @@ class SimulatorAPIClient:
             logger.error(f"Failed to retrieve status for run {run_id}: {e}")
             raise
 
-    def get_run_dump(self, run_id: str) -> List[Dict[str, Any]]:
+    def get_run_dump(self, run_id: str, debug: bool = False) -> List[Dict[str, Any]]:
         """Retrieve all data for a run in NDJSON format.
 
         Args:
-            run_id: ID of the run
+            run_id: ID of the run.
+            debug: Whether to enable debug mode. Defaults to False.
 
         Returns:
-            List of dictionaries containing run data
+            List of dictionaries containing run data.
 
         Raises:
-            requests.RequestException: If the API request fails
+            requests.RequestException: If the API request fails.
         """
-        url = f"{self.base_url}/run/dump"
+        if debug:
+            url = f"{self.base_url}/debug/dump"
+        else:
+            url = f"{self.base_url}/run/dump"
+            
         params = {"run_id": run_id}
 
         logger.debug(f"Retrieving dump for run: {run_id}")
