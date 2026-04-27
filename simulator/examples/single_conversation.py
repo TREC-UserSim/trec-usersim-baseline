@@ -21,7 +21,7 @@ auth_token = os.getenv("AUTH_TOKEN")
 llm_model = os.getenv("LLM_MODEL")
 llm_api_base = os.getenv("LLM_API_BASE")
 
-def main():
+def main(debug: bool = False):
     """Run a single conversation using LLM strategy."""
 
     api_client = SimulatorAPIClient(
@@ -52,7 +52,8 @@ def main():
         logger.info("Starting run...")
         response = user_simulator.initiate_run(
             run_id="example_run_llm_001",
-            description="Example conversation with LLM-based user simulator"
+            description="Example conversation with LLM-based user simulator",
+            debug=debug,
         )
 
         logger.info(f"Agent: {response.utterance.text if response.utterance else 'No initial utterance'}")
@@ -65,7 +66,7 @@ def main():
             logger.info(f"User: {user_response}")
 
             # Send to agent and get next response
-            response = user_simulator.continue_conversation(user_response)
+            response = user_simulator.continue_conversation(user_response, debug=debug)
             logger.info(f"Agent: {response.utterance.text if response.utterance else 'No response'}")
 
             turn_count += 1
