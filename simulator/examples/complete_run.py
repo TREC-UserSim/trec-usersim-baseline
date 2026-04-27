@@ -1,3 +1,4 @@
+import argparse
 import os
 import logging
 from pathlib import Path
@@ -43,4 +44,8 @@ def main(debug: bool = False):
     logging.info(f"Run completed. Metrics: {metrics}")
 
 if __name__ == "__main__":
-    main()
+    parser = argparse.ArgumentParser()
+    parser.add_argument("-d", "--debug", action="store_true")
+    args = parser.parse_args()
+
+    main(debug=args.debug)

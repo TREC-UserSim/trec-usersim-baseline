@@ -1,5 +1,7 @@
 """Single conversation example using LLM-based response strategy."""
 
+import argparse
+from dotenv import load_dotenv
 import os
 import logging
 
@@ -7,6 +9,8 @@ from simulator.src.api_client import SimulatorAPIClient
 from simulator.src.persona import PersonaDefinition, PersonaRegistry
 from simulator.src.user_simulator import UserSimulator
 from simulator.src.response_strategies import LLMStrategy
+
+load_dotenv()
 
 # Setup logging
 logging.basicConfig(
@@ -98,4 +102,8 @@ def main(debug: bool = False):
 
 
 if __name__ == "__main__":
-    main()
+    parser = argparse.ArgumentParser()
+    parser.add_argument("-d", "--debug", action="store_true")
+    args = parser.parse_args()
+
+    main(debug=args.debug)
