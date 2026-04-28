@@ -96,18 +96,20 @@ class UserSimulator:
             f"Initialized UserSimulator for persona {persona.name} ({persona.id})"
         )
 
-    def initiate_run(self, run_id: str, description: str) -> APIResponse:
+    def initiate_run(self, run_id: str, description: str, debug: bool = False) -> APIResponse:
         """Start a new conversation with the agent.
 
         Args:
-            run_id: Unique identifier for the run
-            description: Description of the run
+            run_id: Unique identifier for the run.
+            description: Description of the run.
+            debug: Whether to enable debug mode. Defaults to False.
 
         Returns:
-            APIResponse containing the conversation goal and first agent utterance
+            APIResponse containing the conversation goal and first agent
+              utterance.
 
         Raises:
-            RuntimeError: If a conversation is already active
+            RuntimeError: If a conversation is already active.
         """
         if self.state is not None:
             raise RuntimeError(
@@ -118,7 +120,7 @@ class UserSimulator:
         logger.info(f"Initiating run: {run_id}")
 
         # Call API to start the run
-        response = self.api_client.start_run(run_id, description)
+        response = self.api_client.start_run(run_id, description, debug=debug)
 
         self.state = ConversationState(
             run_id=run_id,
@@ -204,7 +206,10 @@ class UserSimulator:
         return response
 
     def continue_conversation(
-        self, response_text: Optional[str] = None, is_final: bool = False
+        self,
+        response_text: Optional[str] = None,
+        is_final: bool = False, 
+        debug: bool = False
     ) -> APIResponse:
         """Send a response and continue the conversation.
 
@@ -214,16 +219,18 @@ class UserSimulator:
         - Update conversation state based on response
 
         Args:
-            response_text: The user's response text
-                (if None, uses the last generated response)
-            is_final: Whether this is the final user utterance
+            response_text: The user's response text. Defaults to None.
+              (if None, uses the last generated response)
+            is_final: Whether this is the final user utterance. Defaults to
+              False.
+            debug: Whether to enable debug mode. Defaults to False.
 
         Returns:
-            APIResponse with the next agent utterance
+            APIResponse with the next agent utterance.
 
         Raises:
-            RuntimeError: If no conversation is active
-            ValueError: If no response is available
+            RuntimeError: If no conversation is active.
+            ValueError: If no response is available.
         """
         if self.state is None:
             raise RuntimeError(
@@ -252,6 +259,7 @@ class UserSimulator:
                 sources=None,
                 annotations=None,
                 is_final=is_final,
+                debug=debug,
             )
 
             # Update state
@@ -290,37 +298,45 @@ class UserSimulator:
 
         return self.state.chat_history.copy()
 
-    def get_full_session(self) -> List[Utterance]:
+    def get_full_session(self, debug: bool = False) -> List[Utterance]:
         """Retrieve complete session data from the API.
 
+        Args:
+            debug: Whether the run was executed in debug mode. Defaults to
+              False.
+
         Returns:
-            List of Utterance objects for the entire session
+            List of Utterance objects for the entire session.
 
         Raises:
-            RuntimeError: If no conversation is active
+            RuntimeError: If no conversation is active.
         """
         if self.state is None:
             raise RuntimeError(
                 "No active conversation. Call initiate_conversation() first."
             )
 
-        return self.api_client.get_session(self.state.run_id)
+        return self.api_client.get_session(self.state.run_id, debug=debug)
 
-    def get_run_dump(self) -> List[Dict[str, Any]]:
+    def get_run_dump(self, debug: bool = False) -> List[Dict[str, Any]]:
         """Retrieve full run data in JSON format.
 
+        Args:
+            debug: Whether the run was executed in debug mode. Defaults to
+              False.
+
         Returns:
-            List of dictionaries containing run data
+            List of dictionaries containing run data.
 
         Raises:
-            RuntimeError: If no conversation is active
+            RuntimeError: If no conversation is active.
         """
         if self.state is None:
             raise RuntimeError(
                 "No active conversation. Call initiate_conversation() first."
             )
 
-        return self.api_client.get_run_dump(self.state.run_id)
+        return self.api_client.get_run_dump(self.state.run_id, debug=debug)
 
     def is_conversation_active(self) -> bool:
         """Check if a conversation is currently active.
@@ -359,6 +375,7 @@ class UserSimulator:
         description: str,
         run_path: Optional[Path] = None,
         max_turns: int = 1000,
+        debug: bool = False
     ) -> Dict[str, Any]:
         """Execute a complete run from start to finish.
 
@@ -369,9 +386,10 @@ class UserSimulator:
         4. Cleans up and returns metrics
 
         Args:
-            run_id: Unique identifier for the run
-            description: Description of the run
-            max_turns: Maximum number of turns to execute (default: 1000)
+            run_id: Unique identifier for the run.
+            description: Description of the run.
+            max_turns: Maximum number of turns to execute. Defaults to 1000.
+            debug: Whether to enable debug mode. Defaults to False.
 
         Returns:
             Dictionary containing:
@@ -382,7 +400,7 @@ class UserSimulator:
                 - errors: List of any errors encountered
 
         Raises:
-            RuntimeError: If a conversation is already active
+            RuntimeError: If a conversation is already active.
         """
         if self.state is not None:
             raise RuntimeError(
@@ -403,7 +421,7 @@ class UserSimulator:
         try:
             # Step 1: Initialize the run
             logger.info(f"Initializing run: {run_id}")
-            initial_response = self.initiate_run(run_id, description)
+            initial_response = self.initiate_run(run_id, description, debug=debug)
             logger.info(f"Run initialized. Goal: {initial_response.goal.target}")
             metrics["total_conversations"] = 1
 
@@ -422,6 +440,7 @@ class UserSimulator:
                     response = self.continue_conversation(
                         response_text=user_response,
                         is_final=False,
+                        debug=debug,
                     )
 
                     total_turns += 1
@@ -465,6 +484,7 @@ class UserSimulator:
                         response = self.continue_conversation(
                             response_text=user_response,
                             is_final=False,
+                            debug=debug,
                         )
 
                     elif response.utterance.is_final:

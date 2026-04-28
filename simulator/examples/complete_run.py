@@ -1,3 +1,4 @@
+import argparse
 import os
 import logging
 from pathlib import Path
@@ -20,7 +21,7 @@ auth_token = os.getenv("AUTH_TOKEN")
 run_id = "test_run_001"
 description = "this is a test run"
 
-def main():
+def main(debug: bool = False):
     api_client = SimulatorAPIClient(
         base_url= base_url,
         team_id=team_name,
@@ -39,8 +40,12 @@ def main():
         response_strategy=response_strategy,
     )
 
-    metrics = user_simulator.complete_run(run_id=run_id, description=description, run_path=Path("runs"))
+    metrics = user_simulator.complete_run(run_id=run_id, description=description, run_path=Path("runs"), debug=debug)
     logging.info(f"Run completed. Metrics: {metrics}")
 
 if __name__ == "__main__":
-    main()
+    parser = argparse.ArgumentParser()
+    parser.add_argument("-d", "--debug", action="store_true")
+    args = parser.parse_args()
+
+    main(debug=args.debug)
