@@ -4,9 +4,10 @@ import argparse
 from dotenv import load_dotenv
 import os
 import logging
+from pathlib import Path
 
 from simulator.src.api_client import SimulatorAPIClient
-from simulator.src.persona import PersonaDefinition, PersonaRegistry
+from simulator.src.persona import PersonaRegistry
 from simulator.src.user_simulator import UserSimulator
 from simulator.src.response_strategies import LLMStrategy
 
@@ -19,23 +20,41 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
-base_url = os.getenv("BASE_URL") 
+base_url = os.getenv("BASE_URL")
 team_name = os.getenv("TEAM_NAME")
 auth_token = os.getenv("AUTH_TOKEN")
 llm_model = os.getenv("LLM_MODEL")
 llm_api_base = os.getenv("LLM_API_BASE")
+run_id = "test_run_001"
+description = "this is a test run"
 
-def main(debug: bool = False):
+personas_path = Path(__file__).resolve().parents[1] / "personas.example.json"
+
+if not base_url or not team_name or not auth_token:
+    raise ValueError(
+        "BASE_URL, TEAM_NAME, and AUTH_TOKEN must be set in the environment or .env file."
+    )
+
+if not llm_model or not llm_api_base:
+    raise ValueError(
+        "LLM_MODEL and LLM_API_BASE must be set in the environment or .env file."
+    )
+
+def main(
+    debug: bool = False,
+    run_id: str = run_id,
+    description: str = description,
+):
     """Run a single conversation using LLM strategy."""
 
     api_client = SimulatorAPIClient(
-        base_url= base_url,
+        base_url=base_url,
         team_id=team_name,
         auth_token=auth_token,
     )
 
     persona_registry = PersonaRegistry()
-    persona_registry.load_from_file("simulator/personas.example.json")
+    persona_registry.load_from_file(personas_path)
     persona = persona_registry.get_persona("persona_001")
 
     response_strategy = LLMStrategy(
@@ -55,8 +74,8 @@ def main(debug: bool = False):
         # Initiate run
         logger.info("Starting run...")
         response = user_simulator.initiate_run(
-            run_id="example_run_llm_001",
-            description="Example conversation with LLM-based user simulator",
+            run_id=run_id,
+            description=description,
             debug=debug,
         )
 
@@ -65,7 +84,7 @@ def main(debug: bool = False):
 
         # Continue conversation until completion
         while user_simulator.is_conversation_active() and turn_count < 10:
-            # Generate user user_simulator using LLM
+            # Generate the next user response using LLM
             user_response = user_simulator.respond()
             logger.info(f"User: {user_response}")
 
@@ -104,6 +123,12 @@ def main(debug: bool = False):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("-d", "--debug", action="store_true")
+    parser.add_argument("--run-id", default=run_id, help="Run identifier")
+    parser.add_argument(
+        "--description",
+        default=description,
+        help="Description for the run",
+    )
     args = parser.parse_args()
 
-    main(debug=args.debug)
+    main(debug=args.debug, run_id=args.run_id, description=args.description)
