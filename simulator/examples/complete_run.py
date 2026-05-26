@@ -55,7 +55,7 @@ def main(
         metrics = user_simulator.complete_run(
             run_id=run_id,
             description=description,
-            run_path=Path("runs"),
+            run_path=Path("runs") if not debug else None, # do not dump runs in debug mode
             debug=debug,
         )
         logging.info(f"Run completed. Metrics: {metrics}")
