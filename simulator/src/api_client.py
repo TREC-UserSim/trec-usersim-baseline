@@ -33,6 +33,11 @@ class Goal:
     target: str
     discipline: Optional[str] = None
 
+    @property
+    def topic(self) -> str:
+        """Alias for backwards compatibility with updated API schema."""
+        return self.target
+
 
 @dataclass
 class Utterance:
@@ -45,6 +50,7 @@ class Utterance:
     annotations: Dict[str, Any] = field(default_factory=dict)
     timestamp: str = ""
     is_final: bool = False
+    participant_name: Optional[str] = None
 
     @classmethod
     def from_dict(cls, data: Dict[str, Any]) -> "Utterance":
@@ -54,9 +60,12 @@ class Utterance:
             for src in data.get("sources", [])
         ]
         timestamp = data.get("timestamp", datetime.now().isoformat())
+        participant_name = data.get("participant_name", data.get("participant_id", ""))
+        participant_id = data.get("participant_id", participant_name)
         return cls(
             conversation_id=data.get("conversation_id", ""),
-            participant_id=data.get("participant_id", ""),
+            participant_id=participant_id,
+            participant_name=participant_name,
             text=data.get("text", ""),
             sources=sources,
             annotations=data.get("annotations", {}),
@@ -66,9 +75,10 @@ class Utterance:
 
     def to_dict(self) -> Dict[str, Any]:
         """Convert Utterance to dictionary for API requests."""
+        participant_name = self.participant_name or self.participant_id
         return {
             "conversation_id": self.conversation_id,
-            "participant_id": self.participant_id,
+            "participant_name": participant_name,
             "text": self.text,
             "sources": [
                 {
@@ -98,26 +108,20 @@ class APIResponse:
     @classmethod
     def from_dict(cls, data: Dict[str, Any]) -> "APIResponse":
         """Create APIResponse from API response dictionary."""
-        goal_data = data.get("goal", {})
+        scenario_data = data.get("scenario", {}) or {}
+        goal_data = scenario_data.get("goal", data.get("goal", {}))
         goal = Goal(
             id=goal_data.get("id", ""),
             context=goal_data.get("context", ""),
-            target=goal_data.get("target", ""),
-            discipline=goal_data.get("discipline"),
+            target=goal_data.get("topic", goal_data.get("target", "")),
         )
-
-        utterance = None
-        if data.get("utterance") is not None:
-            utterance = Utterance.from_dict(data.get("utterance"))
-
         return cls(
             conversation_id=data.get("conversation_id", ""),
             goal=goal,
-            utterance=utterance,
+            utterance=Utterance.from_dict(data["utterance"]) if data.get("utterance") else None,
             is_complete=data.get("is_complete", False),
             is_new_conversation=data.get("is_new_conversation", False),
-        )
-
+        )   
 
 class SimulatorAPIClient:
     """Client for interacting with the conversational agent REST API.
@@ -162,12 +166,19 @@ class SimulatorAPIClient:
                 {"Authorization": f"Bearer {self.auth_token}"}
             )
 
-    def start_run(self, run_id: str, description: str, debug: bool = False) -> APIResponse:
+    def start_run(
+        self,
+        run_id: str,
+        description: str,
+        task_name: str = "task2",
+        debug: bool = False,
+    ) -> APIResponse:
         """Start a new conversation run.
 
         Args:
             run_id: Unique identifier for the run.
             description: Description of the run.
+            task_name: Task name for the run metadata.
             debug: Whether to enable debug mode. Defaults to False.
 
         Returns:
@@ -177,14 +188,17 @@ class SimulatorAPIClient:
             requests.RequestException: If the API request fails
         """
         if debug:
-            url = f"{self.base_url}/debug/start"
+            url = f"{self.base_url}/task2/debug/start"
         else:
-            url = f"{self.base_url}/run/start"
+            url = f"{self.base_url}/task2/run/start"
 
         payload = {
             "run_id": run_id,
+            "task_name": task_name,
             "description": description,
         }
+        if self.team_id:
+            payload["team_id"] = self.team_id
 
         logger.debug(f"Starting run: {run_id}")
         try:
@@ -228,14 +242,15 @@ class SimulatorAPIClient:
             requests.RequestException: If the API request fails
         """
         if debug:
-            url = f"{self.base_url}/debug/continue"
+            url = f"{self.base_url}/task2/debug/continue"
         else:
-            url = f"{self.base_url}/run/continue"
+            url = f"{self.base_url}/task2/run/continue"
 
         # Create user utterance with proper structure
         user_utterance = Utterance(
             conversation_id=conversation_id,
             participant_id="user", # always "user" for the simulator
+            participant_name="user",
             text=response_text,
             sources=sources or [],
             annotations=annotations or {},
@@ -265,10 +280,17 @@ class SimulatorAPIClient:
             # Handle 201 status code as new conversation start
             if response.status_code == 201:
                 logger.info(f"New conversation started (201 status): {run_id}")
-                data = response.json()
-                api_response = APIResponse.from_dict(data)
-                api_response.is_new_conversation = True
-                return api_response
+                if response.content and response.content.strip():
+                    data = response.json()
+                    api_response = APIResponse.from_dict(data)
+                    api_response.is_new_conversation = True
+                    return api_response
+                return APIResponse(
+                    conversation_id="",
+                    goal=Goal(id="", context="", target=""),
+                    utterance=None,
+                    is_new_conversation=True,
+                )
             
             response.raise_for_status()
             data = response.json()

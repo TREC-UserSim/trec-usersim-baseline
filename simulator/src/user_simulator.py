@@ -96,12 +96,19 @@ class UserSimulator:
             f"Initialized UserSimulator for persona {persona.name} ({persona.id})"
         )
 
-    def initiate_run(self, run_id: str, description: str, debug: bool = False) -> APIResponse:
+    def initiate_run(
+        self,
+        run_id: str,
+        description: str,
+        task_name: str = "task2",
+        debug: bool = False,
+    ) -> APIResponse:
         """Start a new conversation with the agent.
 
         Args:
             run_id: Unique identifier for the run.
             description: Description of the run.
+            task_name: Task name for the run metadata.
             debug: Whether to enable debug mode. Defaults to False.
 
         Returns:
@@ -120,7 +127,12 @@ class UserSimulator:
         logger.info(f"Initiating run: {run_id}")
 
         # Call API to start the run
-        response = self.api_client.start_run(run_id, description, debug=debug)
+        response = self.api_client.start_run(
+            run_id,
+            description,
+            task_name=task_name,
+            debug=debug,
+        )
 
         self.state = ConversationState(
             run_id=run_id,
@@ -370,12 +382,13 @@ class UserSimulator:
         return self.state
 
     def complete_run(
-        self, 
-        run_id: str, 
+        self,
+        run_id: str,
         description: str,
+        task_name: str = "task2",
         run_path: Optional[Path] = None,
         max_turns: int = 1000,
-        debug: bool = False
+        debug: bool = False,
     ) -> Dict[str, Any]:
         """Execute a complete run from start to finish.
 
@@ -421,8 +434,13 @@ class UserSimulator:
         try:
             # Step 1: Initialize the run
             logger.info(f"Initializing run: {run_id}")
-            initial_response = self.initiate_run(run_id, description, debug=debug)
-            logger.info(f"Run initialized. Goal: {initial_response.goal.target}")
+            initial_response = self.initiate_run(
+                run_id,
+                description,
+                task_name=task_name,
+                debug=debug,
+            )
+            logger.info(f"Run initialized. Goal: {initial_response.goal.topic}")
             metrics["total_conversations"] = 1
 
             # Step 2: Conversation loop
@@ -469,7 +487,7 @@ class UserSimulator:
                     elif response.utterance is None:
                         # New goal/scenario starting
                         logger.info(
-                            f"New goal initiated. Goal: {response.goal.target}"
+                            f"New goal initiated. Goal: {response.goal.topic}"
                         )
                         self.end_conversation()
                         conversation_count += 1
