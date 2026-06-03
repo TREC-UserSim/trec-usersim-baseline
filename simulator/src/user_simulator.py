@@ -11,7 +11,7 @@ from dataclasses import dataclass, field
 from typing import Any, Dict, List, Optional
 
 from simulator.src.api_client import SimulatorAPIClient, APIResponse, Source, Utterance
-from simulator.src.scenario import Goal, Scenario, PersonaDefinition
+from simulator.src.scenario import Goal, Scenario
 from simulator.src.response_strategies import ResponseStrategy, RandomStrategy
 
 logger = logging.getLogger(__name__)
@@ -78,29 +78,20 @@ class UserSimulator:
         self,
         api_client: SimulatorAPIClient,
         response_strategy: Optional[ResponseStrategy] = None,
-        persona: Optional[PersonaDefinition] = None,
     ):
         """Initialize the user simulator.
 
-        The original implementation required a ``persona`` argument. The updated
-        design obtains the persona from the API ``Scenario`` payload, but tests
-        and legacy code may still pass a persona. To remain compatible, the
-        ``persona`` parameter is optional and stored temporarily until the first
-        API response provides the full scenario.
+        The user simulator obtains the persona from the API ``Scenario`` payload.
 
         Args:
             api_client: SimulatorAPIClient for API interactions
             response_strategy: ResponseStrategy for generating responses
                 (defaults to RandomStrategy)
-            persona: Optional legacy PersonaDefinition; will be ignored after the
-                scenario is set.
         """
         self.api_client = api_client
         self.response_strategy = response_strategy or RandomStrategy()
         self.state: Optional[ConversationState] = None
         self.scenario: Scenario
-        # Preserve legacy persona until scenario is available
-        self._legacy_persona = persona
         logger.info("Initialized UserSimulator")
 
     def initiate_run(
@@ -215,22 +206,16 @@ class UserSimulator:
         #     raise ValueError("No agent message to respond to")
 
 
-        # Log using the persona from the current scenario
+        # Use scenario persona
+        if self.scenario is None:
+            raise RuntimeError("No scenario available for response generation")
+
         logger.debug(
-            f"Generating response for persona {self.scenario.persona if self.scenario and self.scenario.persona else 'unknown'}"
+            f"Generating response for persona {self.scenario.persona}"
         )
 
-        # Use scenario persona if available; otherwise fall back to legacy persona
-        persona = None
-        if self.scenario is not None:
-            persona = self.scenario.persona
-        elif getattr(self, "_legacy_persona", None) is not None:
-            persona = self._legacy_persona
-        else:
-            raise RuntimeError("No persona available for response generation")
-
         response = self.response_strategy.generate_response(
-            persona,
+            self.scenario.persona,
             self.state.chat_history,
             message,
             self.scenario,
