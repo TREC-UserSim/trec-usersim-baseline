@@ -4,10 +4,8 @@ import argparse
 from dotenv import load_dotenv
 import os
 import logging
-from pathlib import Path
 
 from simulator.src.api_client import SimulatorAPIClient
-from simulator.src.persona import PersonaRegistry
 from simulator.src.user_simulator import UserSimulator
 from simulator.src.response_strategies import LLMStrategy
 
@@ -27,8 +25,6 @@ llm_model = os.getenv("LLM_MODEL")
 llm_api_base = os.getenv("LLM_API_BASE")
 run_id = "test_run_001"
 description = "this is a test run"
-
-personas_path = Path(__file__).resolve().parents[1] / "personas.example.json"
 
 if not base_url or not team_name or not auth_token:
     raise ValueError(
@@ -53,18 +49,14 @@ def main(
         auth_token=auth_token,
     )
 
-    persona_registry = PersonaRegistry()
-    persona_registry.load_from_file(personas_path)
-    persona = persona_registry.get_persona("persona_001")
-
     response_strategy = LLMStrategy(
         model=llm_model,
         api_base=llm_api_base
         )
 
+    # Initialize simulator without a persona; it will be set from the API response
     user_simulator = UserSimulator(
         api_client=api_client,
-        persona=persona,
         response_strategy=response_strategy,
     )
 
