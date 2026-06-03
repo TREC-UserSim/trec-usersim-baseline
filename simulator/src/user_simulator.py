@@ -10,8 +10,8 @@ from pathlib import Path
 from dataclasses import dataclass, field
 from typing import Any, Dict, List, Optional
 
-from simulator.src.api_client import SimulatorAPIClient, APIResponse, Source, Utterance, Goal
-from simulator.src.persona import PersonaDefinition
+from simulator.src.api_client import SimulatorAPIClient, APIResponse, Source, Utterance
+from simulator.src.scenario import Goal, Scenario, PersonaDefinition
 from simulator.src.response_strategies import ResponseStrategy, RandomStrategy
 
 logger = logging.getLogger(__name__)
@@ -76,25 +76,32 @@ class UserSimulator:
 
     def __init__(
         self,
-        persona: PersonaDefinition,
         api_client: SimulatorAPIClient,
         response_strategy: Optional[ResponseStrategy] = None,
+        persona: Optional[PersonaDefinition] = None,
     ):
         """Initialize the user simulator.
 
+        The original implementation required a ``persona`` argument. The updated
+        design obtains the persona from the API ``Scenario`` payload, but tests
+        and legacy code may still pass a persona. To remain compatible, the
+        ``persona`` parameter is optional and stored temporarily until the first
+        API response provides the full scenario.
+
         Args:
-            persona: PersonaDefinition describing the simulated user
             api_client: SimulatorAPIClient for API interactions
             response_strategy: ResponseStrategy for generating responses
                 (defaults to RandomStrategy)
+            persona: Optional legacy PersonaDefinition; will be ignored after the
+                scenario is set.
         """
-        self.persona = persona
         self.api_client = api_client
         self.response_strategy = response_strategy or RandomStrategy()
         self.state: Optional[ConversationState] = None
-        logger.info(
-            f"Initialized UserSimulator for persona {persona.name} ({persona.id})"
-        )
+        self.scenario: Scenario
+        # Preserve legacy persona until scenario is available
+        self._legacy_persona = persona
+        logger.info("Initialized UserSimulator")
 
     def initiate_run(
         self,
@@ -134,10 +141,13 @@ class UserSimulator:
             debug=debug,
         )
 
+        # Store the scenario from the response
+        self.scenario = response.scenario
+
         self.state = ConversationState(
             run_id=run_id,
             conversation_id=response.conversation_id,
-            goal=response.goal,
+            goal=response.scenario.goal,
             turn_count=0,
         )
 
@@ -146,7 +156,7 @@ class UserSimulator:
 
         return response
 
-    def initiate_conversation(self, run_id: str, conversation_id: str, goal: Goal):
+    def initiate_conversation(self, run_id: str, conversation_id: str, scenario: Scenario):
         """Start a new conversation with the agent.
 
         Args:
@@ -171,7 +181,7 @@ class UserSimulator:
         self.state = ConversationState(
             run_id=run_id,
             conversation_id=conversation_id,
-            goal=goal,
+            goal=scenario.goal,
             turn_count=0,
         )
 
@@ -204,13 +214,26 @@ class UserSimulator:
         # if not message:
         #     raise ValueError("No agent message to respond to")
 
-        logger.debug(f"Generating response for persona {self.persona.name}")
+
+        # Log using the persona from the current scenario
+        logger.debug(
+            f"Generating response for persona {self.scenario.persona if self.scenario and self.scenario.persona else 'unknown'}"
+        )
+
+        # Use scenario persona if available; otherwise fall back to legacy persona
+        persona = None
+        if self.scenario is not None:
+            persona = self.scenario.persona
+        elif getattr(self, "_legacy_persona", None) is not None:
+            persona = self._legacy_persona
+        else:
+            raise RuntimeError("No persona available for response generation")
 
         response = self.response_strategy.generate_response(
-            self.persona,
+            persona,
             self.state.chat_history,
             message,
-            self.state.goal,
+            self.scenario,
         )
 
         # Store the generated response temporarily
