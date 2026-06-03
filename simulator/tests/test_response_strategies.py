@@ -6,7 +6,7 @@ from unittest.mock import Mock, patch, MagicMock
 from simulator.src.response_strategies import (
     ResponseStrategy, RandomStrategy, LLMStrategy
 )
-from simulator.src.persona import PersonaDefinition
+from simulator.src.scenario import PersonaDefinition
 from simulator.src.api_client import Goal
 
 
