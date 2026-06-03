@@ -11,6 +11,16 @@ from typing import Any, Dict, List, Optional
 from dataclasses import dataclass, field
 from datetime import datetime
 
+from simulator.src.scenario import (
+    Goal,
+    Persona,
+    PersonaGeneralInfo,
+    PersonaExperience,
+    PersonaTraits,
+    PersonaGoalInteraction,
+    Scenario,
+)
+
 logger = logging.getLogger(__name__)
 
 
@@ -22,21 +32,6 @@ class Source:
     title: str
     url: Optional[str] = None
     document_id: Optional[str] = None
-
-
-@dataclass
-class Goal:
-    """Represents a conversation goal."""
-
-    id: str
-    context: str
-    target: str
-    discipline: Optional[str] = None
-
-    @property
-    def topic(self) -> str:
-        """Alias for backwards compatibility with updated API schema."""
-        return self.target
 
 
 @dataclass
@@ -97,31 +92,86 @@ class Utterance:
 
 @dataclass
 class APIResponse:
-    """Represents a response from the API."""
+    """Represents a response from the API.
+
+    ``scenario`` is the new preferred container for ``goal``, ``persona`` and
+    ``persona_goal_interaction``. For backward compatibility the class also
+    accepts a ``goal`` argument directly. If ``scenario`` is not provided, a
+    minimal placeholder is created using the supplied ``goal`` (or an empty
+    ``Goal`` when neither is given).
+    """
 
     conversation_id: str
-    goal: Goal
+    # New unified container – optional for legacy usage
+    scenario: Optional["Scenario"] = None
+    # Legacy field – kept for existing code and tests
+    goal: Optional[Goal] = None
     utterance: Optional[Utterance] = None
     is_complete: bool = False
     is_new_conversation: bool = False
 
+    def __post_init__(self):
+        # Ensure a Scenario instance is always available
+        if self.scenario is None:
+            # Use provided legacy goal or create an empty one
+            goal_obj = self.goal or Goal(context="", topic="", discipline=None)
+            self.scenario = Scenario(
+                goal=goal_obj,
+                persona=Persona(),
+                persona_goal_interaction=PersonaGoalInteraction(),
+            )
+        # Keep legacy ``goal`` attribute in sync with scenario
+        if self.goal is None:
+            self.goal = self.scenario.goal
     @classmethod
     def from_dict(cls, data: Dict[str, Any]) -> "APIResponse":
-        """Create APIResponse from API response dictionary."""
+        """Create APIResponse from API response dictionary, parsing the scenario."""
+        # Parse scenario components
         scenario_data = data.get("scenario", {}) or {}
-        goal_data = scenario_data.get("goal", data.get("goal", {}))
+        # Goal
+        goal_data = scenario_data.get("goal", {})
         goal = Goal(
-            id=goal_data.get("id", ""),
             context=goal_data.get("context", ""),
-            target=goal_data.get("topic", goal_data.get("target", "")),
+            topic=goal_data.get("topic", goal_data.get("target", "")),
+            discipline=goal_data.get("discipline"),
         )
+        # Persona
+        persona_data = scenario_data.get("persona", {})
+        general_info = PersonaGeneralInfo(
+            gender=persona_data.get("general_info", {}).get("gender"),
+            age=persona_data.get("general_info", {}).get("age"),
+            highest_education=persona_data.get("general_info", {}).get("highest_education"),
+            proficiency_in_english=persona_data.get("general_info", {}).get("proficiency_in_english"),
+            tools_used_for_dataset_search=persona_data.get("general_info", {}).get("tools_used_for_dataset_search", []),
+        )
+        experience = PersonaExperience(
+            trust=persona_data.get("experience_with_ai", {}).get("trust"),
+            perceived_human_likeness=persona_data.get("experience_with_ai", {}).get("perceived_human_likeness"),
+        )
+        traits = PersonaTraits(
+            frustration_threshold=persona_data.get("individual_traits", {}).get("frustration_threshold"),
+            interaction_style=persona_data.get("individual_traits", {}).get("interaction_style"),
+        )
+        persona = Persona(
+            general_info=general_info,
+            experience_with_ai=experience,
+            individual_traits=traits,
+        )
+        # Persona-Goal Interaction
+        pgi_data = scenario_data.get("persona_goal_interaction", {})
+        pgi = PersonaGoalInteraction(
+            domain_familiarity=pgi_data.get("domain_familiarity"),
+            known_datasets=pgi_data.get("known_datasets", []),
+        )
+        scenario = Scenario(goal=goal, persona=persona, persona_goal_interaction=pgi)
+
         return cls(
             conversation_id=data.get("conversation_id", ""),
-            goal=goal,
+            scenario=scenario,
             utterance=Utterance.from_dict(data["utterance"]) if data.get("utterance") else None,
             is_complete=data.get("is_complete", False),
             is_new_conversation=data.get("is_new_conversation", False),
-        )   
+        )
 
 class SimulatorAPIClient:
     """Client for interacting with the conversational agent REST API.

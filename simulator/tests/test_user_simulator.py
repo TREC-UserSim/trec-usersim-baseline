@@ -7,9 +7,9 @@ from simulator.src.user_simulator import (
     ConversationState, UserSimulator
 )
 from simulator.src.api_client import (
-    SimulatorAPIClient, APIResponse, Goal, Utterance, Source
+    SimulatorAPIClient, APIResponse, Utterance, Source
 )
-from simulator.src.persona import PersonaDefinition
+from simulator.src.scenario import Goal, Scenario, Persona, PersonaGoalInteraction, PersonaDefinition
 from simulator.src.response_strategies import RandomStrategy, ResponseStrategy
 
 
@@ -157,7 +157,7 @@ class TestUserSimulator:
         """Test creating a user simulator."""
         persona = PersonaDefinition(id="p1")
         api_client = Mock(spec=SimulatorAPIClient)
-        simulator = UserSimulator(persona, api_client)
+        simulator = UserSimulator(api_client=api_client, persona=persona)
 
         assert simulator.persona == persona
         assert simulator.api_client == api_client
@@ -169,7 +169,7 @@ class TestUserSimulator:
         persona = PersonaDefinition(id="p1")
         api_client = Mock(spec=SimulatorAPIClient)
         custom_strategy = RandomStrategy()
-        simulator = UserSimulator(persona, api_client, custom_strategy)
+        simulator = UserSimulator(api_client=api_client, response_strategy=custom_strategy, persona=persona)
 
         assert simulator.response_strategy == custom_strategy
 
@@ -186,12 +186,12 @@ class TestUserSimulator:
         )
         api_response = APIResponse(
             conversation_id="conv_1",
-            goal=goal,
+            scenario=Scenario(goal=goal, persona=PersonaDefinition(id="p1"), persona_goal_interaction=PersonaGoalInteraction()),
             utterance=utterance,
         )
         api_client.start_run.return_value = api_response
 
-        simulator = UserSimulator(persona, api_client)
+        simulator = UserSimulator(api_client=api_client, persona=persona)
         result = simulator.initiate_run("run_1", "Test run")
 
         assert result == api_response
@@ -213,7 +213,7 @@ class TestUserSimulator:
         )
         api_client.start_run.return_value = api_response
 
-        simulator = UserSimulator(persona, api_client)
+        simulator = UserSimulator(api_client=api_client, persona=persona)
         result = simulator.initiate_run("run_1", "Test run")
 
         assert result == api_response
@@ -232,12 +232,12 @@ class TestUserSimulator:
         )
         api_response = APIResponse(
             conversation_id="conv_1",
-            goal=goal,
+            scenario=Scenario(goal=goal, persona=Persona(id="p1"), persona_goal_interaction=PersonaGoalInteraction()),
             utterance=utterance,
         )
         api_client.start_run.return_value = api_response
 
-        simulator = UserSimulator(persona, api_client)
+        simulator = UserSimulator(api_client=api_client, persona=persona)
         simulator.initiate_run("run_1", "Test run")
 
         # Try to initiate another run without ending the first
@@ -250,7 +250,7 @@ class TestUserSimulator:
         api_client = Mock(spec=SimulatorAPIClient)
         
         goal = Goal(id="g1", context="ctx", target="tgt")
-        simulator = UserSimulator(persona, api_client)
+        simulator = UserSimulator(api_client=api_client, persona=persona)
         simulator.initiate_conversation("run_1", "conv_1", goal)
 
         assert simulator.state is not None
@@ -264,7 +264,7 @@ class TestUserSimulator:
         api_client = Mock(spec=SimulatorAPIClient)
         goal = Goal(id="g1", context="ctx", target="tgt")
 
-        simulator = UserSimulator(persona, api_client)
+        simulator = UserSimulator(api_client=api_client, persona=persona)
         simulator.initiate_conversation("run_1", "conv_1", goal)
 
         # Try to initiate another conversation
@@ -289,7 +289,7 @@ class TestUserSimulator:
         )
         api_client.start_run.return_value = api_response
 
-        simulator = UserSimulator(persona, api_client)
+        simulator = UserSimulator(api_client=api_client, persona=persona)
         simulator.initiate_run("run_1", "Test")
         response = simulator.respond()
 
@@ -301,7 +301,7 @@ class TestUserSimulator:
         persona = PersonaDefinition(id="p1")
         api_client = Mock(spec=SimulatorAPIClient)
         
-        simulator = UserSimulator(persona, api_client)
+        simulator = UserSimulator(api_client=api_client, persona=persona)
         with pytest.raises(RuntimeError, match="No active conversation"):
             simulator.respond()
 
@@ -337,7 +337,7 @@ class TestUserSimulator:
         )
         api_client.continue_run.return_value = api_response2
 
-        simulator = UserSimulator(persona, api_client)
+        simulator = UserSimulator(api_client=api_client, persona=persona)
         
         # Start run
         result1 = simulator.initiate_run("run_1", "Test run")

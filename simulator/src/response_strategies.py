@@ -11,8 +11,7 @@ from typing import Any, Dict, List, Optional
 
 from litellm import completion
 
-from simulator.src.persona import PersonaDefinition
-from simulator.src.api_client import Goal
+from simulator.src.scenario import Goal, Scenario, Persona
 
 logger = logging.getLogger(__name__)
 
@@ -23,15 +22,15 @@ class ResponseStrategy(ABC):
     @abstractmethod
     def generate_response(
         self,
-        persona: PersonaDefinition, 
+        persona: Persona,
         conversation_history: List[Dict[str, str]],
         agent_utterance: str,
-        goal: Goal,
+        scenario: Scenario,
     ) -> str:
         """Generate a response based on the persona and conversation context.
 
         Args:
-            persona: PersonaDefinition describing the user
+            persona: Persona describing the user
             conversation_history: List of previous messages in the conversation
             agent_utterance: The most recent message from the agent
             scenario_id: Optional scenario identifier for context
@@ -69,18 +68,18 @@ class RandomStrategy(ResponseStrategy):
 
     def generate_response(
         self,
-        persona: PersonaDefinition = None, 
+        persona: Persona = None,
         conversation_history: List[Dict[str, str]] = None,
         agent_utterance: str = None,
-        goal: Goal = None,
+        scenario: Scenario = None,
     ) -> str:
         """Generate a random response.
 
         Args:
-            persona: PersonaDefinition (unused in random strategy)
+            persona: Persona (unused in random strategy)
             conversation_history: Conversation history (unused)
             agent_utterance: Agent message (unused)
-            scenario_id: Optional scenario ID (unused)
+            scenario: Scenario object (unused)
 
         Returns:
             Random response from the pool
@@ -118,41 +117,51 @@ class LLMStrategy(ResponseStrategy):
 
     def generate_response(
         self,
-        persona: PersonaDefinition,
+        persona: Persona,
         conversation_history: List[Dict[str, str]],
         agent_utterance: str,
-        goal: Goal,
+        scenario: Scenario,
     ) -> str:
         """Generate a response using the LLM based on persona and context.
 
         Args:
-            persona: PersonaDefinition describing the user
+            persona: Persona describing the user
             conversation_history: List of previous messages in the conversation
             agent_utterance: The most recent message from the agent
-            goal: The conversation goal
+            scenario: The scenario containing goal and interaction
 
         Returns:
             Generated response text
         """
         # Build system prompt with persona information
         system_prompt = (
-            f"You are simulating a user with the following persona: {persona.name}.\n"
+            f"You are simulating a user with the following characteristics:\n"
             f"General info: {persona.general_info}\n"
-            f"AI experience: {persona.ai_experience}\n"
-            f"Traits: {persona.traits}\n"
+            f"AI experience: {persona.experience_with_ai}\n"
+            f"Traits: {persona.individual_traits}\n"
             "Respond naturally as this persona in the conversation. "
             "Keep responses conversational and appropriate to the persona's characteristics."
         )
 
-        # Add goal information for context
-        if goal:
+        # Add scenario information for context (goal, persona, interaction)
+        if scenario:
+            # Goal
+            goal = scenario.goal
             system_prompt += (
                 f"\n\nThe goal of this conversation is:\n"
                 f"Context: {goal.context}\n"
-                f"Target: {goal.target}\n"
-                f"Discipline: {goal.discipline or 'N/A'}"
+                f"Topic: {goal.topic}\n"
+                f"Discipline: {goal.discipline or 'N/A'}\n"
             )
-
+            # Persona details already included above, but we can add extra if needed
+            # Persona-Goal Interaction
+            pgi = scenario.persona_goal_interaction
+            if pgi:
+                system_prompt += (
+                    f"\n\nInteraction details:\n"
+                    f"Domain familiarity: {pgi.domain_familiarity}\n"
+                    f"Known datasets: {', '.join(pgi.known_datasets)}\n"
+                )
         # Initialize messages with system prompt
         messages = [{"role": "system", "content": system_prompt}]
 

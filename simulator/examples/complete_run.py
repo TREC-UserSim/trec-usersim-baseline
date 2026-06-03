@@ -5,7 +5,6 @@ from pathlib import Path
 from dotenv import load_dotenv
 
 from simulator.src.api_client import SimulatorAPIClient
-from simulator.src.persona import PersonaRegistry
 from simulator.src.response_strategies import RandomStrategy
 from simulator.src.user_simulator import UserSimulator
 
@@ -20,8 +19,6 @@ team_name = os.getenv("TEAM_NAME")
 auth_token = os.getenv("AUTH_TOKEN")
 run_id = "test_run_001"
 description = "this is a test run"
-
-personas_path = Path(__file__).resolve().parents[1] / "personas.example.json"
 
 if not base_url or not team_name or not auth_token:
     raise ValueError(
@@ -39,15 +36,11 @@ def main(
         auth_token=auth_token,
     )
 
-    persona_registry = PersonaRegistry()
-    persona_registry.load_from_file(personas_path)
-    persona = persona_registry.get_persona("persona_001")
-
     response_strategy = RandomStrategy()
 
+    # Initialize simulator without a persona; it will be set from the API response
     user_simulator = UserSimulator(
         api_client=api_client,
-        persona=persona,
         response_strategy=response_strategy,
     )
 

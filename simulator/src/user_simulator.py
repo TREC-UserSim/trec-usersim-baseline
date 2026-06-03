@@ -10,8 +10,8 @@ from pathlib import Path
 from dataclasses import dataclass, field
 from typing import Any, Dict, List, Optional
 
-from simulator.src.api_client import SimulatorAPIClient, APIResponse, Source, Utterance, Goal
-from simulator.src.persona import PersonaDefinition
+from simulator.src.api_client import SimulatorAPIClient, APIResponse, Source, Utterance
+from simulator.src.scenario import Goal, Scenario
 from simulator.src.response_strategies import ResponseStrategy, RandomStrategy
 
 logger = logging.getLogger(__name__)
@@ -76,25 +76,23 @@ class UserSimulator:
 
     def __init__(
         self,
-        persona: PersonaDefinition,
         api_client: SimulatorAPIClient,
         response_strategy: Optional[ResponseStrategy] = None,
     ):
         """Initialize the user simulator.
 
+        The user simulator obtains the persona from the API ``Scenario`` payload.
+
         Args:
-            persona: PersonaDefinition describing the simulated user
             api_client: SimulatorAPIClient for API interactions
             response_strategy: ResponseStrategy for generating responses
                 (defaults to RandomStrategy)
         """
-        self.persona = persona
         self.api_client = api_client
         self.response_strategy = response_strategy or RandomStrategy()
         self.state: Optional[ConversationState] = None
-        logger.info(
-            f"Initialized UserSimulator for persona {persona.name} ({persona.id})"
-        )
+        self.scenario: Scenario
+        logger.info("Initialized UserSimulator")
 
     def initiate_run(
         self,
@@ -134,10 +132,13 @@ class UserSimulator:
             debug=debug,
         )
 
+        # Store the scenario from the response
+        self.scenario = response.scenario
+
         self.state = ConversationState(
             run_id=run_id,
             conversation_id=response.conversation_id,
-            goal=response.goal,
+            goal=response.scenario.goal,
             turn_count=0,
         )
 
@@ -146,7 +147,7 @@ class UserSimulator:
 
         return response
 
-    def initiate_conversation(self, run_id: str, conversation_id: str, goal: Goal):
+    def initiate_conversation(self, run_id: str, conversation_id: str, scenario: Scenario):
         """Start a new conversation with the agent.
 
         Args:
@@ -171,7 +172,7 @@ class UserSimulator:
         self.state = ConversationState(
             run_id=run_id,
             conversation_id=conversation_id,
-            goal=goal,
+            goal=scenario.goal,
             turn_count=0,
         )
 
@@ -204,13 +205,20 @@ class UserSimulator:
         # if not message:
         #     raise ValueError("No agent message to respond to")
 
-        logger.debug(f"Generating response for persona {self.persona.name}")
+
+        # Use scenario persona
+        if self.scenario is None:
+            raise RuntimeError("No scenario available for response generation")
+
+        logger.debug(
+            f"Generating response for persona {self.scenario.persona}"
+        )
 
         response = self.response_strategy.generate_response(
-            self.persona,
+            self.scenario.persona,
             self.state.chat_history,
             message,
-            self.state.goal,
+            self.scenario,
         )
 
         # Store the generated response temporarily
