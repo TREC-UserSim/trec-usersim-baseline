@@ -40,7 +40,7 @@ def main(
     debug: bool = False,
     run_id: str = run_id,
     description: str = description,
-    task_name: str = "task2",
+    task_name: str = "end_to_end_conversation_generation",
 ):
     """Run a single conversation using LLM strategy.
 
@@ -48,7 +48,7 @@ def main(
         debug: Enable debug mode.
         run_id: Identifier for the run.
         description: Description of the run.
-        task_name: ``"task1"`` for next‑utterance prediction or ``"task2"`` for a full conversation.
+        task_name: ``"last_utterance_prediction"`` for next-utterance prediction or ``"end_to_end_conversation_generation"`` for a full conversation.
     """
 
     api_client = SimulatorAPIClient(
@@ -136,9 +136,9 @@ if __name__ == "__main__":
     )
     parser.add_argument(
         "--task",
-        default="task2",
-        choices=["task1", "task2"],
-        help="Task name (task1 for next utterance prediction, task2 for full conversation)",
+        default="end_to_end_conversation_generation",
+        choices=["last_utterance_prediction", "end_to_end_conversation_generation"],
+        help="Task name (last_utterance_prediction for next utterance prediction, end_to_end_conversation_generation for full conversation)",
     )
     args = parser.parse_args()
 

@@ -220,7 +220,7 @@ class SimulatorAPIClient:
         self,
         run_id: str,
         description: str,
-        task_name: str = "task2",
+        task_name: str = "end_to_end_conversation_generation",
         debug: bool = False,
     ) -> APIResponse:
         """Start a new run for either Task 1 or Task 2.
@@ -232,14 +232,14 @@ class SimulatorAPIClient:
         Args:
             run_id: Unique identifier for the run.
             description: Description of the run.
-            task_name: Either ``"task1"`` or ``"task2"`` (default).
+            task_name: Either ``"last_utterance_prediction"`` or ``"end_to_end_conversation_generation"`` (default).
             debug: Whether to use the debug endpoint.
 
         Returns:
             APIResponse with conversation_id, goal, and initial utterance.
         """
         # Resolve the correct endpoint based on task and debug flag
-        if task_name == "task1":
+        if task_name == "last_utterance_prediction":
             endpoint = "task1/debug/start" if debug else "task1/run/start"
         else:
             # Default to task2 behaviour for any other value
@@ -257,6 +257,7 @@ class SimulatorAPIClient:
         logger.debug(f"Starting run {run_id} using endpoint {url}")
         try:
             response = self.session.post(url, json=payload, timeout=self.timeout)
+            print(response.text)
             response.raise_for_status()
             data = response.json()
             logger.info(f"Successfully started run: {run_id}")
@@ -273,7 +274,7 @@ class SimulatorAPIClient:
         sources: Optional[List[Source]] = None,
         annotations: Optional[Dict[str, Any]] = None,
         is_final: bool = False,
-        task_name: str = "task2",
+        task_name: str = "end_to_end_conversation_generation",
         debug: bool = False,
     ) -> APIResponse:
         """Continue an ongoing run for either Task 1 or Task 2.
@@ -285,7 +286,7 @@ class SimulatorAPIClient:
             sources: Optional list of :class:`Source` objects.
             annotations: Optional dictionary of annotations.
             is_final: Mark the response as final.
-            task_name: ``"task1"`` or ``"task2"`` (default).
+            task_name: ``"last_utterance_prediction"`` or ``"end_to_end_conversation_generation"`` (default).
             debug: Use the debug endpoint when ``True``.
 
         Returns:
@@ -293,7 +294,7 @@ class SimulatorAPIClient:
             completion.
         """
         # Resolve endpoint based on task and debug flag
-        if task_name == "task1":
+        if task_name == "last_utterance_prediction":
             endpoint = "task1/debug/continue" if debug else "task1/run/continue"
         else:
             endpoint = "task2/debug/continue" if debug else "task2/run/continue"
