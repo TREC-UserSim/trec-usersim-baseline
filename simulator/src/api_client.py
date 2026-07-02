@@ -223,24 +223,28 @@ class SimulatorAPIClient:
         task_name: str = "task2",
         debug: bool = False,
     ) -> APIResponse:
-        """Start a new conversation run.
+        """Start a new run for either Task 1 or Task 2.
+
+        The backend provides separate endpoints for the two tasks. ``task_name``
+        determines which endpoint is used. ``debug`` selects the debug variant
+        of the endpoint.
 
         Args:
             run_id: Unique identifier for the run.
             description: Description of the run.
-            task_name: Task name for the run metadata.
-            debug: Whether to enable debug mode. Defaults to False.
+            task_name: Either ``"task1"`` or ``"task2"`` (default).
+            debug: Whether to use the debug endpoint.
 
         Returns:
-            APIResponse with conversation_id, goal, and initial utterance
-
-        Raises:
-            requests.RequestException: If the API request fails
+            APIResponse with conversation_id, goal, and initial utterance.
         """
-        if debug:
-            url = f"{self.base_url}/task2/debug/start"
+        # Resolve the correct endpoint based on task and debug flag
+        if task_name == "task1":
+            endpoint = "task1/debug/start" if debug else "task1/run/start"
         else:
-            url = f"{self.base_url}/task2/run/start"
+            # Default to task2 behaviour for any other value
+            endpoint = "task2/debug/start" if debug else "task2/run/start"
+        url = f"{self.base_url}/{endpoint}"
 
         payload = {
             "run_id": run_id,
@@ -250,7 +254,7 @@ class SimulatorAPIClient:
         if self.team_id:
             payload["team_id"] = self.team_id
 
-        logger.debug(f"Starting run: {run_id}")
+        logger.debug(f"Starting run {run_id} using endpoint {url}")
         try:
             response = self.session.post(url, json=payload, timeout=self.timeout)
             response.raise_for_status()
@@ -269,32 +273,31 @@ class SimulatorAPIClient:
         sources: Optional[List[Source]] = None,
         annotations: Optional[Dict[str, Any]] = None,
         is_final: bool = False,
+        task_name: str = "task2",
         debug: bool = False,
     ) -> APIResponse:
-        """Continue an ongoing conversation.
+        """Continue an ongoing run for either Task 1 or Task 2.
 
         Args:
-            run_id: ID of the run being continued.
-            response_text: User's response text.
-            conversation_id: ID of the conversation.
-            sources: Optional list of Source objects referenced by the user.
-              Defaults to None.
-            annotations: Optional annotations for the response. Defaults to
-              None.
-            is_final: Whether this is the final user utterance. Defaults to
-              False.
-            debug: Whether to enable debug mode. Defaults to False.
+            run_id: Identifier of the run.
+            response_text: Text of the user response.
+            conversation_id: Conversation identifier returned by ``start_run``.
+            sources: Optional list of :class:`Source` objects.
+            annotations: Optional dictionary of annotations.
+            is_final: Mark the response as final.
+            task_name: ``"task1"`` or ``"task2"`` (default).
+            debug: Use the debug endpoint when ``True``.
 
         Returns:
-            APIResponse with the next agent utterance
-
-        Raises:
-            requests.RequestException: If the API request fails
+            APIResponse containing the next agent utterance or signalling run
+            completion.
         """
-        if debug:
-            url = f"{self.base_url}/task2/debug/continue"
+        # Resolve endpoint based on task and debug flag
+        if task_name == "task1":
+            endpoint = "task1/debug/continue" if debug else "task1/run/continue"
         else:
-            url = f"{self.base_url}/task2/run/continue"
+            endpoint = "task2/debug/continue" if debug else "task2/run/continue"
+        url = f"{self.base_url}/{endpoint}"
 
         # Create user utterance with proper structure
         user_utterance = Utterance(
