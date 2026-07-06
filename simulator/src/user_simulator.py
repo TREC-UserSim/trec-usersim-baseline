@@ -98,7 +98,7 @@ class UserSimulator:
         self,
         run_id: str,
         description: str,
-        task_name: str = "task2",
+        task_name: str = "end_to_end_conversation_generation",
         debug: bool = False,
     ) -> APIResponse:
         """Start a new conversation with the agent.
