@@ -98,7 +98,7 @@ class UserSimulator:
         self,
         run_id: str,
         description: str,
-        task_name: str = "task2",
+        task_name: str = "end_to_end_conversation_generation",
         debug: bool = False,
     ) -> APIResponse:
         """Start a new conversation with the agent.
@@ -228,8 +228,9 @@ class UserSimulator:
     def continue_conversation(
         self,
         response_text: Optional[str] = None,
-        is_final: bool = False, 
-        debug: bool = False
+        is_final: bool = False,
+        task_name: str = "task2",
+        debug: bool = False,
     ) -> APIResponse:
         """Send a response and continue the conversation.
 
@@ -279,6 +280,7 @@ class UserSimulator:
                 sources=None,
                 annotations=None,
                 is_final=is_final,
+                task_name=task_name,
                 debug=debug,
             )
 
@@ -466,6 +468,7 @@ class UserSimulator:
                     response = self.continue_conversation(
                         response_text=user_response,
                         is_final=False,
+                        task_name=task_name,
                         debug=debug,
                     )
 
@@ -486,7 +489,7 @@ class UserSimulator:
                         metrics["total_conversations"] = conversation_count
 
                         # Initialize new conversation state
-                        self.initiate_conversation(run_id, response.conversation_id, response.goal)
+                        self.initiate_conversation(run_id, response.conversation_id, response)
                         
                         # Add agent message if present
                         if response.utterance is not None:
@@ -501,7 +504,7 @@ class UserSimulator:
                         conversation_count += 1
                         metrics["total_conversations"] = conversation_count
 
-                        response = self.initiate_conversation(run_id, response.conversation_id, response.goal)
+                        self.initiate_conversation(run_id, response.conversation_id, response)
                         
                         user_response = self.respond()
                         logger.debug(f"Generated response: {user_response[:100]}...")
@@ -510,6 +513,7 @@ class UserSimulator:
                         response = self.continue_conversation(
                             response_text=user_response,
                             is_final=False,
+                            task_name=task_name,
                             debug=debug,
                         )
 

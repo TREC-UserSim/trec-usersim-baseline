@@ -29,6 +29,7 @@ def main(
     debug: bool = False,
     run_id: str = run_id,
     description: str = description,
+    task_name: str = "end_to_end_conversation_generation",
 ):
     api_client = SimulatorAPIClient(
         base_url=base_url,
@@ -48,6 +49,7 @@ def main(
         metrics = user_simulator.complete_run(
             run_id=run_id,
             description=description,
+            task_name=task_name,
             run_path=Path("runs") if not debug else None, # do not dump runs in debug mode
             debug=debug,
         )
@@ -59,6 +61,12 @@ def main(
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
+    parser.add_argument(
+        "--task",
+        default="end_to_end_conversation_generation",
+        choices=["last_utterance_prediction", "end_to_end_conversation_generation"],
+        help="Task name (last_utterance_prediction for next utterance prediction, end_to_end_conversation_generation for full conversation)",
+    )
     parser.add_argument("-d", "--debug", action="store_true")
     parser.add_argument("--run-id", default=run_id, help="Run identifier")
     parser.add_argument(
@@ -68,4 +76,4 @@ if __name__ == "__main__":
     )
     args = parser.parse_args()
 
-    main(debug=args.debug, run_id=args.run_id, description=args.description)
+    main(debug=args.debug, run_id=args.run_id, description=args.description, task_name=args.task)

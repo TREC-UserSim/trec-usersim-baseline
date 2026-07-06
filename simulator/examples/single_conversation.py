@@ -40,8 +40,16 @@ def main(
     debug: bool = False,
     run_id: str = run_id,
     description: str = description,
+    task_name: str = "end_to_end_conversation_generation",
 ):
-    """Run a single conversation using LLM strategy."""
+    """Run a single conversation using LLM strategy.
+
+    Args:
+        debug: Enable debug mode.
+        run_id: Identifier for the run.
+        description: Description of the run.
+        task_name: ``"last_utterance_prediction"`` for next-utterance prediction or ``"end_to_end_conversation_generation"`` for a full conversation.
+    """
 
     api_client = SimulatorAPIClient(
         base_url=base_url,
@@ -68,6 +76,7 @@ def main(
         response = user_simulator.initiate_run(
             run_id=run_id,
             description=description,
+            task_name=task_name,
             debug=debug,
         )
 
@@ -81,7 +90,11 @@ def main(
             logger.info(f"User: {user_response}")
 
             # Send to agent and get next response
-            response = user_simulator.continue_conversation(user_response, debug=debug)
+            response = user_simulator.continue_conversation(
+                user_response,
+                task_name=args.task,
+                debug=args.debug,
+            )
             logger.info(f"Agent: {response.utterance.text if response.utterance else 'No response'}")
 
             turn_count += 1
@@ -121,6 +134,12 @@ if __name__ == "__main__":
         default=description,
         help="Description for the run",
     )
+    parser.add_argument(
+        "--task",
+        default="end_to_end_conversation_generation",
+        choices=["last_utterance_prediction", "end_to_end_conversation_generation"],
+        help="Task name (last_utterance_prediction for next utterance prediction, end_to_end_conversation_generation for full conversation)",
+    )
     args = parser.parse_args()
 
-    main(debug=args.debug, run_id=args.run_id, description=args.description)
+    main(debug=args.debug, run_id=args.run_id, description=args.description, task_name=args.task)
