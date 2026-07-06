@@ -489,7 +489,7 @@ class UserSimulator:
                         metrics["total_conversations"] = conversation_count
 
                         # Initialize new conversation state
-                        self.initiate_conversation(run_id, response.conversation_id, response.goal)
+                        self.initiate_conversation(run_id, response.conversation_id, response)
                         
                         # Add agent message if present
                         if response.utterance is not None:
@@ -504,7 +504,7 @@ class UserSimulator:
                         conversation_count += 1
                         metrics["total_conversations"] = conversation_count
 
-                        response = self.initiate_conversation(run_id, response.conversation_id, response.goal)
+                        self.initiate_conversation(run_id, response.conversation_id, response)
                         
                         user_response = self.respond()
                         logger.debug(f"Generated response: {user_response[:100]}...")
