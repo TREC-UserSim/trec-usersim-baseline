@@ -1,7 +1,7 @@
 # TREC UserSim Baseline Simulator
 
 > [!NOTE]
-> This repository contains a baseline implementation to get started with developing your own user simulator for **TREC UserSim**. More details about the shared task can be found on the [official website](https://trec.usersim.ai/) and in the [guidelines](https://trec.usersim.ai/guidelines). The code integrates the API of the the TREC UserSim platform and provides examples for user simulators with simple response strategies. 
+> This repository contains a baseline implementation to get started with developing your own user simulator for **TREC UserSim**. More details about the shared task can be found on the [official website](https://trec.usersim.ai/) and in the [guidelines](https://trec.usersim.ai/guidelines). The code integrates the API of the TREC UserSim platform and provides examples for user simulators with simple response strategies. 
 
 **Contents** 
 1. [TREC UserSim API](#trec-usersim-api)
@@ -32,7 +32,7 @@ The two most important API endpoints are:
 - **`task[1|2]/run/start`** to start and initiate the run submission,
 - **`task[1|2]/run/continue`** to continue completing the run submission.
 
-A single run covers mulitple scenarios (combinations of personas and goals) for which conversations with an agent have to be simulated. Information about the first scenario is returned to the user simulator in response to the first API call (cf. **`task[1|2]/run/start`**). 
+A single run covers multiple scenarios (combinations of personas and goals) for which conversations with an agent have to be simulated. Information about the first scenario is returned to the user simulator in response to the first API call (cf. **`task[1|2]/run/start`**). 
 
 Once the user simulated has generated an utterance it is sent to the TREC UserSim platform (cf. **`task[1|2]/run/continue`**). In response, the platform returns the corresponding interactive utterance made by the conversational agent. This process is repeated until the run is completed.
 
@@ -164,7 +164,7 @@ The client initiates the run with `POST task1/run/start`, which will return the 
 > - **Input:** A scenario that specifies the simulated user’s persona and goals.
 > - **Output:** A complete, multi-turn conversation. The simulator must dynamically interact with the provided system, generating sequential turns until the simulator autonomously decides the goal is satisfied or that the search should be abandoned.
 
-The client initiates the run with `POST task2/run/start`, which will return the first scenario in the response. The client-side user simulator then generates the first utterance which is send to the infrastructure and conversational agent with `POST task2/run/continue`. The corresponding response contains the chat history, including the utterance made by the agent in response to the simulated user's utterance. The user simulator continues the conversation by sending the next utterance with `POST task2/run/continue` until the conversation is finished.
+The client initiates the run with `POST task2/run/start`, which will return the first scenario in the response. The client-side user simulator then generates the first utterance which is sent to the infrastructure and conversational agent with `POST task2/run/continue`. The corresponding response contains the chat history, including the utterance made by the agent in response to the simulated user's utterance. The user simulator continues the conversation by sending the next utterance with `POST task2/run/continue` until the conversation is finished.
 
 #### Example outputs
 
@@ -266,13 +266,13 @@ The table below provides short descriptions of how the baseline simulator is imp
 
 | File | Description | 
 |---|---| 
-| [`user_simulator.py`](./simulator/src/user_simulator.py) | integrates all other components and coordinates the interaction with the API, the scenario handling, and the response strategy. | 
-| [`scenario.py`](./simulator/src/scenario.py) | contains the data classes of the scenario, including the persona, goal, and persona-goal interactions. | 
-| [`response_strategy.py`](./simulator/src/response_strategy.py) | implements different strategies of how a simulated user generates utterances. | 
-| [`api_client.py`](./simulator/src/api_client.py) | handles the interaction with the TREC UserSim API. | 
+| [`user_simulator.py`](./simulator/src/user_simulator.py) | Integrates all other components and coordinates the interaction with the API, the scenario handling, and the response strategy. | 
+| [`scenario.py`](./simulator/src/scenario.py) | Contains the data classes of the scenario, including the persona, goal, and persona-goal interactions. | 
+| [`response_strategy.py`](./simulator/src/response_strategy.py) | Implements different strategies of how a simulated user generates utterances. | 
+| [`api_client.py`](./simulator/src/api_client.py) | Handles the interaction with the TREC UserSim API. | 
 
 ## Setup and Getting Started
-1. Create virtual environment and install the required packages in `simulator/requirements.txt`
+1. Create virtual environment and install the required packages in `simulator/requirements.txt`.
 
 2. Create a `.env` file (adapt `.env.example` in this repository). Specifically, add `BASE_URL` (address of the backend infrastructure) and assign your team name to `TEAM_NAME`. Upon registration, you receive an authentication token, make sure to include it in `AUTH_TOKEN`.
 
@@ -283,7 +283,7 @@ Below, examples for a single conversation and a complete run (comprising multipl
 Run a single conversation with [`single_conversation.py`](./simulator/examples/single_conversation.py).
 
 > [!NOTE]
-> Before running this particular script, make sure you have access to an LLM and update the variables `LLM_MODEL` and `LLM_API_BASE` in `.env` accordingly. Alternatively, implement your own LLMStrategy or a more light-weight approach.
+> Before running this particular script, make sure you have access to an LLM and update the variables `LLM_MODEL` and `LLM_API_BASE` in `.env` accordingly. Alternatively, implement your own `LLMStrategy` or a more light-weight approach.
 
 #### Task 1: Turn-level Next Utterance Prediction
 **Debug mode:**
