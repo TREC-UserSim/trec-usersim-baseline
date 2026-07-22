@@ -4,11 +4,14 @@
 > This repository contains a baseline implementation to get started with developing your own user simulator for **TREC UserSim**. More details about the shared task can be found on the [official website](https://trec.usersim.ai/) and in the [guidelines](https://trec.usersim.ai/guidelines). The code integrates the API of the TREC UserSim platform and provides examples for user simulators with simple response strategies. 
 
 **Contents** 
-1. [TREC UserSim API](#trec-usersim-api)
-2. [TREC UserSim Tasks and Example Outputs](#trec-usersim-tasks-and-example-outputs)
-3. [Baseline User Simulator](#baseline-user-simulator)
-4. [Setup and Getting Started](#setup-and-getting-started)
-5. [Examples](#examples)
+- [TREC UserSim Baseline Simulator](#trec-usersim-baseline-simulator)
+  - [TREC UserSim API](#trec-usersim-api)
+  - [TREC UserSim Tasks and Example Outputs](#trec-usersim-tasks-and-example-outputs)
+  - [Baseline User Simulator](#baseline-user-simulator)
+  - [Setup and Getting Started](#setup-and-getting-started)
+  - [Examples](#examples)
+    - [Task 1: Turn-level Next Utterance Prediction](#task-1-turn-level-next-utterance-prediction)
+    - [Task 2: Session-level End-to-End Conversation Generation](#task-2-session-level-end-to-end-conversation-generation)
 
 ## TREC UserSim API
 
@@ -63,56 +66,12 @@ The table below provides short descriptions of how the baseline simulator is imp
 2. Create a `.env` file (adapt `.env.example` in this repository). Specifically, add `BASE_URL` (address of the backend infrastructure) and assign your team name to `TEAM_NAME`. Upon registration, you receive an authentication token, make sure to include it in `AUTH_TOKEN`.
 
 ## Examples
-Below, examples for a single conversation and a complete run (comprising multiple conversations/scenarios) are provided. 
-
-### Example #1: Single conversation. 
-Run a single conversation with [`single_conversation.py`](./simulator/examples/single_conversation.py).
+Below, examples for completing a run (comprising multiple conversations/scenarios) based on [`complete_run.py`](./simulator/examples/complete_run.py) are provided.
 
 > [!NOTE]
-> Before running this particular script, make sure you have access to an LLM and update the variables `LLM_MODEL` and `LLM_API_BASE` in `.env` accordingly. Alternatively, implement your own `LLMStrategy` or a more light-weight approach.
+> These examples will make use of a simulator with predefined utterances and demonstrate how to complete an entire run submission. If you want to user the other example implementation with a LLM-based `ResponseStrategy`, make sure you have access to an LLM and update the variables `LLM_MODEL` and `LLM_API_BASE` in `.env` accordingly. Alternatively, implement your own `ResponseStrategy` in [response_strategies.py](simulator/src/response_strategies.py).
 
-#### Task 1: Turn-level Next Utterance Prediction
-**Debug mode:**
-```bash
-python -m simulator.examples.single_conversation \
-  --task next_utterance_prediction \
-  --debug \
-  --run-id debug_task1_001 \
-  --description "debug, task1"
-```
-
-**Official submission:**
-```bash
-python -m simulator.examples.single_conversation \
-  --task next_utterance_prediction \
-  --run-id task1_001 \
-  --description "official submission, task1"
-```
-
-#### Task 2: Session-level End-to-End Conversation Generation
-**Debug mode:**
-```bash
-python -m simulator.examples.single_conversation \
-  --task end_to_end_conversation_generation \
-  --debug \
-  --run-id debug_task2_001 \
-  --description "debug, task2"
-```
-
-**Official submission:**
-```bash
-python -m simulator.examples.single_conversation \
-  --task end_to_end_conversation_generation \
-  --run-id task2_001 \
-  --description "official submission, task2"
-```
-
-### Example #2: Complete run.
-Complete a run submission with [`complete_run.py`](./simulator/examples/complete_run.py).
-
-This example will make use of a simulator with predefined utterances and demonstrates how to complete an entire run submission.
-
-#### Task 1: Turn-level Next Utterance Prediction
+### Task 1: Turn-level Next Utterance Prediction
 **Debug mode:**
 ```bash
 python -m simulator.examples.complete_run \
@@ -129,7 +88,8 @@ python -m simulator.examples.complete_run \
   --run-id task1_001 \
   --description "official submission, task1"
 ```
-#### Task 2: Session-level End-to-End Conversation Generation
+
+### Task 2: Session-level End-to-End Conversation Generation
 **Debug mode:**
 ```bash
 python -m simulator.examples.complete_run \
