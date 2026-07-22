@@ -64,8 +64,8 @@ if __name__ == "__main__":
     parser.add_argument(
         "--task",
         default="end_to_end_conversation_generation",
-        choices=["last_utterance_prediction", "end_to_end_conversation_generation"],
-        help="Task name (last_utterance_prediction for next utterance prediction, end_to_end_conversation_generation for full conversation)",
+        choices=["next_utterance_prediction", "end_to_end_conversation_generation"],
+        help="Task name (next_utterance_prediction for next utterance prediction, end_to_end_conversation_generation for full conversation)",
     )
     parser.add_argument("-d", "--debug", action="store_true")
     parser.add_argument("--run-id", default=run_id, help="Run identifier")

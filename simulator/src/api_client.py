@@ -232,14 +232,14 @@ class SimulatorAPIClient:
         Args:
             run_id: Unique identifier for the run.
             description: Description of the run.
-            task_name: Either ``"last_utterance_prediction"`` or ``"end_to_end_conversation_generation"`` (default).
+            task_name: Either ``"next_utterance_prediction"`` or ``"end_to_end_conversation_generation"`` (default).
             debug: Whether to use the debug endpoint.
 
         Returns:
             APIResponse with conversation_id, goal, and initial utterance.
         """
         # Resolve the correct endpoint based on task and debug flag
-        if task_name == "last_utterance_prediction":
+        if task_name == "next_utterance_prediction":
             endpoint = "task1/debug/start" if debug else "task1/run/start"
         else:
             # Default to task2 behaviour for any other value
@@ -257,7 +257,7 @@ class SimulatorAPIClient:
         logger.debug(f"Starting run {run_id} using endpoint {url}")
         try:
             response = self.session.post(url, json=payload, timeout=self.timeout)
-            print(response.text)
+            logger.info(f"Response of 'start_run': {json.dumps(response.json())}")
             response.raise_for_status()
             data = response.json()
             logger.info(f"Successfully started run: {run_id}")
@@ -286,7 +286,7 @@ class SimulatorAPIClient:
             sources: Optional list of :class:`Source` objects.
             annotations: Optional dictionary of annotations.
             is_final: Mark the response as final.
-            task_name: ``"last_utterance_prediction"`` or ``"end_to_end_conversation_generation"`` (default).
+            task_name: ``"next_utterance_prediction"`` or ``"end_to_end_conversation_generation"`` (default).
             debug: Use the debug endpoint when ``True``.
 
         Returns:
@@ -294,7 +294,7 @@ class SimulatorAPIClient:
             completion.
         """
         # Resolve endpoint based on task and debug flag
-        if task_name == "last_utterance_prediction":
+        if task_name == "next_utterance_prediction":
             endpoint = "task1/debug/continue" if debug else "task1/run/continue"
         else:
             endpoint = "task2/debug/continue" if debug else "task2/run/continue"
@@ -319,8 +319,9 @@ class SimulatorAPIClient:
 
         logger.debug(f"Continuing conversation for run: {run_id}")
         try:
+            logger.info(f"Payload of response: {json.dumps(response.json())}")
             response = self.session.post(url, json=payload, timeout=self.timeout)
-            
+            logger.info(f"Response of 'continue_run': {json.dumps(response.json())}")
             # Handle 428 status code as run completion
             if response.status_code == 428:
                 logger.info(f"Run completed (428 status): {run_id}")
