@@ -132,6 +132,7 @@ class UserSimulator:
             debug=debug,
         )
 
+
         # Store the scenario from the response
         self.scenario = response.scenario
 
@@ -202,9 +203,6 @@ class UserSimulator:
             if self.state.last_agent_utterance
             else None
         )
-        # if not message:
-        #     raise ValueError("No agent message to respond to")
-
 
         # Use scenario persona
         if self.scenario is None:
@@ -229,7 +227,7 @@ class UserSimulator:
         self,
         response_text: Optional[str] = None,
         is_final: bool = False,
-        task_name: str = "task2",
+        task_name: str = "end_to_end_conversation_generation",
         debug: bool = False,
     ) -> APIResponse:
         """Send a response and continue the conversation.
@@ -328,7 +326,8 @@ class UserSimulator:
               False.
 
         Returns:
-            List of Utterance objects for the entire session.
+            APIResponse containing the conversation_id, scenario information
+            and chat messages of the incomplete conversation.
 
         Raises:
             RuntimeError: If no conversation is active.
@@ -395,7 +394,7 @@ class UserSimulator:
         self,
         run_id: str,
         description: str,
-        task_name: str = "task2",
+        task_name: str = "end_to_end_conversation_generation",
         run_path: Optional[Path] = None,
         max_turns: int = 1000,
         debug: bool = False,
@@ -450,19 +449,43 @@ class UserSimulator:
                 task_name=task_name,
                 debug=debug,
             )
-            logger.info(f"Run initialized. Goal: {initial_response.goal.topic}")
-            metrics["total_conversations"] = 1
 
-            # Step 2: Conversation loop
-            conversation_count = 1
-            total_turns = 0
-            conversation_active = True
+            # Check if run has already been started (412 status code received)
+            if initial_response.is_started:
+                logger.info("Run has already been started (412 status code received)")
+                conversation_count = 1 # TODO: determine count
+                total_turns = 0 # TODO: determine count
+                conversation_active = True
+                metrics["total_conversations"] = 1
+                response = self.get_full_session(run_id)
+
+                print(response.utterance)
+
+                self.scenario = response.scenario
+                self.state = ConversationState(
+                    run_id=run_id,
+                    conversation_id=response.conversation_id,
+                    goal=response.scenario.goal,
+                    turn_count=0,
+                )
+                if response.utterance is not None:
+                    self.state.add_agent_message(response.utterance)
+                logger.info(f"Continue run {run_id} with goal: {response.scenario.goal.topic}")
+
+            else:
+                logger.info(f"Run initialized. Goal: {initial_response.goal.topic}")
+                metrics["total_conversations"] = 1
+
+                # Step 2: Conversation loop
+                conversation_count = 1
+                total_turns = 0
+                conversation_active = True
 
             while conversation_active and total_turns < max_turns:
                 try:
                     # Generate and send response
                     user_response = self.respond()
-                    logger.debug(f"Generated response: {user_response[:100]}...")
+                    logger.debug(f"Generated response: {user_response[:100]} ...")
 
                     # Continue the conversation
                     response = self.continue_conversation(

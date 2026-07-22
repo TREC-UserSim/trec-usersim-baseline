@@ -107,7 +107,8 @@ class APIResponse:
     # Legacy field – kept for existing code and tests
     goal: Optional[Goal] = None
     utterance: Optional[Utterance] = None
-    is_complete: bool = False
+    is_complete: bool = False # is run completed?
+    is_started: bool = False # has run been started?
     is_new_conversation: bool = False
 
     def __post_init__(self):
@@ -165,10 +166,40 @@ class APIResponse:
         )
         scenario = Scenario(goal=goal, persona=persona, persona_goal_interaction=pgi)
 
+        if "chat_messages" in data.keys():
+            chat_messages = data.get("chat_messages", []) or []
+            chat_messages_agent = [m for m in chat_messages if m.get("participant_name") != "user"]
+            
+            if chat_messages_agent: 
+                last_utterance = chat_messages_agent[-1]
+                text = last_utterance.get("text", "")
+                sources = last_utterance.get("annotations", {})
+                annotations = last_utterance.get("annotations", {})
+                timestamp = last_utterance.get("timestamp", "")
+            else:
+                text = ""
+                sources = {}
+                annotations = {}
+                timestamp = ""
+            utterance = Utterance.from_dict(
+                {
+                    "conversation_id": data.get("conversation_id", ""),
+                    "participant_name": "user",
+                    "text": text,
+                    "sources": sources,
+                    "annotations": annotations,
+                    "timestamp": timestamp,
+                    "is_final": False,
+                }
+            )
+            
+        else:
+            utterance=Utterance.from_dict(data["utterance"]) if data.get("utterance") else None
+
         return cls(
             conversation_id=data.get("conversation_id", ""),
             scenario=scenario,
-            utterance=Utterance.from_dict(data["utterance"]) if data.get("utterance") else None,
+            utterance=utterance,
             is_complete=data.get("is_complete", False),
             is_new_conversation=data.get("is_new_conversation", False),
         )
@@ -258,6 +289,17 @@ class SimulatorAPIClient:
         try:
             response = self.session.post(url, json=payload, timeout=self.timeout)
             logger.info(f"Response of 'start_run': {json.dumps(response.json())}")
+
+            # Handle 412 status code as started run
+            if response.status_code == 412:
+                logger.info(f"Run has already been started (412 status): {run_id}")
+                return APIResponse(
+                    conversation_id="",
+                    goal=Goal(id="", context="", target=""),
+                    utterance=None,
+                    is_started=True,
+                )
+
             response.raise_for_status()
             data = response.json()
             logger.info(f"Successfully started run: {run_id}")
@@ -319,7 +361,6 @@ class SimulatorAPIClient:
 
         logger.debug(f"Continuing conversation for run: {run_id}")
         try:
-            logger.info(f"Payload of response: {json.dumps(response.json())}")
             response = self.session.post(url, json=payload, timeout=self.timeout)
             logger.info(f"Response of 'continue_run': {json.dumps(response.json())}")
             # Handle 428 status code as run completion
@@ -331,7 +372,7 @@ class SimulatorAPIClient:
                     utterance=None,
                     is_complete=True,
                 )
-            
+
             # Handle 201 status code as new conversation start
             if response.status_code == 201:
                 logger.info(f"New conversation started (201 status): {run_id}")
@@ -384,7 +425,8 @@ class SimulatorAPIClient:
             data = response.json()
             logger.debug(f"Successfully retrieved session for run: {run_id}")
             # Parse each utterance in the session
-            return [Utterance.from_dict(utterance) for utterance in data]
+            # return [Utterance.from_dict(utterance) for utterance in data]
+            return APIResponse.from_dict(data)
         except requests.RequestException as e:
             logger.error(f"Failed to retrieve session for run {run_id}: {e}")
             raise
