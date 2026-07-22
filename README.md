@@ -1,7 +1,7 @@
 # TREC UserSim Baseline Simulator
 
 > [!NOTE]
-> This repository contains a baseline implementation to get started with developing your own user simulator for **TREC UserSim**. More details about the shared task can be found on the [official website](https://trec.usersim.ai/) and in the [guidelines](https://trec.usersim.ai/guidelines). The code integrates the API of the the TREC UserSim platform and provides examples for user simulators with simple response strategies. 
+> This repository contains a baseline implementation to get started with developing your own user simulator for **TREC UserSim**. More details about the shared task can be found on the [official website](https://trec.usersim.ai/) and in the [guidelines](https://trec.usersim.ai/guidelines). The code integrates the API of the TREC UserSim platform and provides examples for user simulators with simple response strategies. 
 
 **Contents** 
 1. [TREC UserSim API](#trec-usersim-api)
@@ -32,7 +32,7 @@ The two most important API endpoints are:
 - **`task[1|2]/run/start`** to start and initiate the run submission,
 - **`task[1|2]/run/continue`** to continue completing the run submission.
 
-A single run covers mulitple scenarios (combinations of personas and goals) for which conversations with an agent have to be simulated. Information about the first scenario is returned to the user simulator in response to the first API call (cf. **`task[1|2]/run/start`**). 
+A single run covers multiple scenarios (combinations of personas and goals) for which conversations with an agent have to be simulated. Information about the first scenario is returned to the user simulator in response to the first API call (cf. **`task[1|2]/run/start`**). 
 
 Once the user simulated has generated an utterance it is sent to the TREC UserSim platform (cf. **`task[1|2]/run/continue`**). In response, the platform returns the corresponding interactive utterance made by the conversational agent. This process is repeated until the run is completed.
 
@@ -47,7 +47,7 @@ Once the user simulated has generated an utterance it is sent to the TREC UserSi
 > - **Input:** A scenario and a partial conversation history (a sequence of preceding user and system turns) and the simulated user’s underlying initial information need.
 > - **Output:** The single, predicted next user utterance. Participants may also include associated dialogue acts representing the semantic intent of the simulated utterance.
 
-The client initiates the run with `POST task1/run/start`, which will return the first scenario and the chat history in the response. The client-side user simulator then generates the next utterance which is send to the infrastructure and conversational agent with `POST task1/run/continue`. The response from the TREC UserSim platform contains next scenario and the corresponding chat history for which the next utterance has to be simulated. The client repeats `POST task1/run/continue` requests and simulates next utterances until the run is completed.
+The client initiates the run with `POST task1/run/start`, which will return the first scenario and the chat history in the response. The client-side user simulator then generates the next utterance which is sent to the infrastructure and conversational agent with `POST task1/run/continue`. The response from the TREC UserSim platform contains next scenario and the corresponding chat history for which the next utterance has to be simulated. The client repeats `POST task1/run/continue` requests and simulates next utterances until the run is completed.
 
 #### Example outputs
 
