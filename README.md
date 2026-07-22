@@ -29,17 +29,20 @@ sequenceDiagram
 
 The two most important API endpoints are:
 
-- **`task[1|2]/run/start`** to start and initiate the run submission,
-- **`task[1|2]/run/continue`** to continue completing the run submission.
+- **`task[1|2]/[run|debug]/start`** to start and initiate the official run and debug run submission,
+- **`task[1|2]/[run|debug]/continue`** to continue completing the run submission.
 
-A single run covers multiple scenarios (combinations of personas and goals) for which conversations with an agent have to be simulated. Information about the first scenario is returned to the user simulator in response to the first API call (cf. **`task[1|2]/run/start`**). 
+A single run covers multiple scenarios (combinations of personas and goals) for which conversations with an agent have to be simulated. Information about the first scenario is returned to the user simulator in response to the first API call (cf. **`task[1|2]/[run|debug]/start`**). 
 
-Once the user simulated has generated an utterance it is sent to the TREC UserSim platform (cf. **`task[1|2]/run/continue`**). In response, the platform returns the corresponding interactive utterance made by the conversational agent. This process is repeated until the run is completed.
+Once the user simulated has generated an utterance it is sent to the TREC UserSim platform (cf. **`task[1|2]/[run|debug]/continue`**). In response, the platform returns the corresponding interactive utterance made by the conversational agent. This process is repeated until the run is completed.
 
 > [!NOTE]
 > You are completely free to implement the API integration from scratch with any tools you prefer. However, if you want to getting started with the development of the user simulator right away, you may want to reuse the existing integration of the API in [`api_client.py`](./simulator/src/api_client.py)
 
 ## TREC UserSim Tasks and Example Outputs
+
+> [!IMPORTANT]
+> The examples use endpoints for the official run submissions but the outputs are equivalent for the debug run endpoints, where `run` would be replaced by `debug` in the route. 
 
 ### Task 1: Turn-level Next Utterance Prediction
 > [!NOTE]
@@ -47,11 +50,21 @@ Once the user simulated has generated an utterance it is sent to the TREC UserSi
 > - **Input:** A scenario and a partial conversation history (a sequence of preceding user and system turns) and the simulated user’s underlying initial information need.
 > - **Output:** The single, predicted next user utterance. Participants may also include associated dialogue acts representing the semantic intent of the simulated utterance.
 
-The client initiates the run with `POST task1/run/start`, which will return the first scenario and the chat history in the response. The client-side user simulator then generates the next utterance which is send to the infrastructure and conversational agent with `POST task1/run/continue`. The response from the TREC UserSim platform contains next scenario and the corresponding chat history for which the next utterance has to be simulated. The client repeats `POST task1/run/continue` requests and simulates next utterances until the run is completed.
+The client initiates the run with `POST task1/run/start`, which will return the first scenario and the chat history in the response. The client-side user simulator then generates the next utterance which is sent to the infrastructure with `POST task1/run/continue`. The response from the TREC UserSim platform contains next scenario and the corresponding chat history for which the next utterance has to be simulated. The client repeats `POST task1/run/continue` requests and simulates next utterances until the run is completed.
 
 #### Example outputs
 
 `POST task1/run/start`
+
+**Payload of the request:**
+```json
+{
+  "run_id": "5d41402abc4b2a76b9719d911017c592",
+  "task_name": "next_utterance_prediction",
+  "description": "official submission, task1",
+  "team_id": "<YOUR_TEAM_NAME>"
+}
+```
 
 **Response from the TREC UserSim Platform:**
 ```json
@@ -164,11 +177,21 @@ The client initiates the run with `POST task1/run/start`, which will return the 
 > - **Input:** A scenario that specifies the simulated user’s persona and goals.
 > - **Output:** A complete, multi-turn conversation. The simulator must dynamically interact with the provided system, generating sequential turns until the simulator autonomously decides the goal is satisfied or that the search should be abandoned.
 
-The client initiates the run with `POST task2/run/start`, which will return the first scenario in the response. The client-side user simulator then generates the first utterance which is sent to the infrastructure and conversational agent with `POST task2/run/continue`. The corresponding response contains the chat history, including the utterance made by the agent in response to the simulated user's utterance. The user simulator continues the conversation by sending the next utterance with `POST task2/run/continue` until the conversation is finished.
+The client initiates the run with `POST task2/run/start`, which will return the first scenario in the response. The client-side user simulator then generates the first utterance which is sent to the infrastructure with `POST task2/run/continue`. The corresponding response contains the chat history, including the utterance made by the agent in response to the simulated user's utterance. The user simulator continues the conversation by sending the next utterance with `POST task2/run/continue` until the conversation is finished.
 
 #### Example outputs
 
 `POST task2/run/start`
+
+**Payload of the request:**
+```json
+{
+  "run_id": "5d41402abc4b2a76b9719d911017c592",
+  "task_name": "end_to_end_conversation_generation",
+  "description": "official submission, task1",
+  "team_id": "<YOUR_TEAM_NAME>"
+}
+```
 
 **Response from the TREC UserSim Platform:** 
 ```json
