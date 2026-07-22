@@ -48,7 +48,7 @@ def main(
         debug: Enable debug mode.
         run_id: Identifier for the run.
         description: Description of the run.
-        task_name: ``"last_utterance_prediction"`` for next-utterance prediction or ``"end_to_end_conversation_generation"`` for a full conversation.
+        task_name: ``"next_utterance_prediction"`` for next-utterance prediction or ``"end_to_end_conversation_generation"`` for a full conversation.
     """
 
     api_client = SimulatorAPIClient(
@@ -137,8 +137,8 @@ if __name__ == "__main__":
     parser.add_argument(
         "--task",
         default="end_to_end_conversation_generation",
-        choices=["last_utterance_prediction", "end_to_end_conversation_generation"],
-        help="Task name (last_utterance_prediction for next utterance prediction, end_to_end_conversation_generation for full conversation)",
+        choices=["next_utterance_prediction", "end_to_end_conversation_generation"],
+        help="Task name (next_utterance_prediction for next utterance prediction, end_to_end_conversation_generation for full conversation)",
     )
     args = parser.parse_args()
 
