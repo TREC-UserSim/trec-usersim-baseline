@@ -70,6 +70,8 @@ Below, examples for completing a run (comprising multiple conversations/scenario
 
 > [!NOTE]
 > These examples will make use of a simulator with predefined utterances and demonstrate how to complete an entire run submission. If you want to user the other example implementation with a LLM-based `ResponseStrategy`, make sure you have access to an LLM and update the variables `LLM_MODEL` and `LLM_API_BASE` in `.env` accordingly. Alternatively, implement your own `ResponseStrategy` in [response_strategies.py](simulator/src/response_strategies.py).
+>
+> Please also note that for the `debug` mode, it is not possible to dump a run file once it is completed, i.e., you have to take care of the logging yourself. For the official run submission, it is possible to dump the complete run covering all completed conversations once they are completed.
 
 ### Task 1: Turn-level Next Utterance Prediction
 **Debug mode:**
