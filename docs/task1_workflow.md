@@ -38,6 +38,8 @@ sequenceDiagram
 
 The client initiates the run with `POST task1/run/start`, which will return the first scenario and the chat history in the response. The client-side user simulator then generates the next utterance which is sent to the infrastructure with `POST task1/run/continue`. The response from the TREC UserSim platform contains next scenario and the corresponding chat history for which the next utterance has to be simulated. The client repeats `POST task1/run/continue` requests and simulates next utterances until the run is completed.
 
+A conversation is completed, once the next utterance by the user simulator is sent to the infrastructure, which then returns a response with status code `201` and information about a new scenario and the corresponding conversation for which the next utterance should be predicted. The user simulator then continues predicted the next utterance for a new scenario and the corresponding conversation. Technically, the user simulator sends `POST /run/continue` requests until the run is completed, i.e., next utterances are predicted for all conversations of all scenario-agent combinations. Once the run is completed, it is signalled by the status code `428` to the user simulator.
+
 #### Example outputs
 
 `POST task1/run/start`

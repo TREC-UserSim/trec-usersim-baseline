@@ -54,6 +54,8 @@ sequenceDiagram
 
 The client initiates the run with `POST task2/run/start`, which will return the first scenario in the response. The client-side user simulator then generates the first utterance which is sent to the infrastructure with `POST task2/run/continue`. The corresponding response contains the chat history, including the utterance made by the agent in response to the simulated user's utterance. The user simulator continues the conversation by sending the next utterance with `POST task2/run/continue` until the conversation is finished.
 
+The conversation ends either when (1) the conversation budget is depleted (tracked by the infrastructure) or (2) the user simulator decides to end the conversation. Closing a conversation is handled by the boolean parameter `is_final` in the payload of the response or request body, depending on which party decides to end the conversation. In both cases, the infrastructure returns a response with status code `201` and information about the next scenario. The user simulator then continues completing the next conversation of a new scenario. Technically, the user simulator sends `POST /run/continue` requests until the run is completed, i.e., all end-to-end conversations are simulated for all scenario-agent combinations. Once the run is completed, it is signalled by the status code `428` to the user simulator.
+
 #### Example outputs
 
 `POST task2/run/start`
