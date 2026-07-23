@@ -184,7 +184,7 @@ class APIResponse:
             utterance = Utterance.from_dict(
                 {
                     "conversation_id": data.get("conversation_id", ""),
-                    "participant_name": "user",
+                    "participant_name": "agent",
                     "text": text,
                     "sources": sources,
                     "annotations": annotations,
@@ -216,7 +216,7 @@ class SimulatorAPIClient:
         base_url: str,
         team_id: str,
         auth_token: Optional[str] = None,
-        timeout: int = 30,
+        timeout: int = 120,
     ):
         """Initialize the API client.
 
