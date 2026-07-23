@@ -172,11 +172,13 @@ class APIResponse:
             
             if chat_messages_agent: 
                 last_utterance = chat_messages_agent[-1]
+                participant_name = last_utterance.get("participant_name", "agent")
                 text = last_utterance.get("text", "")
                 sources = last_utterance.get("annotations", {})
                 annotations = last_utterance.get("annotations", {})
                 timestamp = last_utterance.get("timestamp", "")
             else:
+                participant_name = "agent"
                 text = ""
                 sources = {}
                 annotations = {}
@@ -184,7 +186,7 @@ class APIResponse:
             utterance = Utterance.from_dict(
                 {
                     "conversation_id": data.get("conversation_id", ""),
-                    "participant_name": "agent",
+                    "participant_name": participant_name,
                     "text": text,
                     "sources": sources,
                     "annotations": annotations,
