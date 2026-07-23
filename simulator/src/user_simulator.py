@@ -459,8 +459,6 @@ class UserSimulator:
                 metrics["total_conversations"] = 1
                 response = self.get_full_session(run_id)
 
-                print(response.utterance)
-
                 self.scenario = response.scenario
                 self.state = ConversationState(
                     run_id=run_id,
