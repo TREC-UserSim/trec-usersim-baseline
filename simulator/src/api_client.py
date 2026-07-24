@@ -143,7 +143,6 @@ class APIResponse:
             age=persona_data.get("general_info", {}).get("age"),
             highest_education=persona_data.get("general_info", {}).get("highest_education"),
             proficiency_in_english=persona_data.get("general_info", {}).get("proficiency_in_english"),
-            tools_used_for_dataset_search=persona_data.get("general_info", {}).get("tools_used_for_dataset_search", []),
         )
         experience = PersonaExperience(
             trust=persona_data.get("experience_with_ai", {}).get("trust"),

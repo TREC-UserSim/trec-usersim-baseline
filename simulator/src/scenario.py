@@ -49,14 +49,12 @@ class PersonaGeneralInfo:
         age: Age or age range
         highest_education: Highest level of education
         proficiency_in_english: English language proficiency level
-        tools_used_for_dataset_search: List of tools used for searching datasets
     """
 
     gender: Optional[str] = None
     age: Optional[str] = None
     highest_education: Optional[str] = None
     proficiency_in_english: Optional[str] = None
-    tools_used_for_dataset_search: List[str] = field(default_factory=list)
 
 
 @dataclass

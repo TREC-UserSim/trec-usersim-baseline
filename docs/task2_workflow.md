@@ -44,13 +44,15 @@ sequenceDiagram
 ## Tasks and Example Outputs
 
 > [!IMPORTANT]
-> The examples use endpoints for the official run submissions but the outputs are equivalent for the debug run endpoints, where `run` would be replaced by `debug` in the route. 
+> The examples use endpoints for the official run submissions but the outputs are equivalent for the debug run endpoints, where `run` would be replaced by `debug` in the route.
 
 ### Task 2: Session-level End-to-End Conversation Generation
+>
 > [!NOTE]
 > This task evaluates a simulator’s ability to strategically manage an entire conversation to achieve a predefined goal. It tests high-level planning, conversational persistence, and the simulator's ability to recognize task success.
-> - **Input:** A scenario that specifies the simulated user’s persona and goals.
-> - **Output:** A complete, multi-turn conversation. The simulator must dynamically interact with the provided system, generating sequential turns until the simulator autonomously decides the goal is satisfied or that the search should be abandoned.
+>
+>   - **Input:** A scenario that specifies the simulated user’s persona and goals.
+>   - **Output:** A complete, multi-turn conversation. The simulator must dynamically interact with the provided system, generating sequential turns until the simulator autonomously decides the goal is satisfied or that the search should be abandoned.
 
 The client initiates the run with `POST task2/run/start`, which will return the first scenario in the response. The client-side user simulator then generates the first utterance which is sent to the infrastructure with `POST task2/run/continue`. The corresponding response contains the chat history, including the utterance made by the agent in response to the simulated user's utterance. The user simulator continues the conversation by sending the next utterance with `POST task2/run/continue` until the conversation is finished.
 
@@ -59,6 +61,7 @@ The client initiates the run with `POST task2/run/start`, which will return the 
 `POST task2/run/start`
 
 **Payload of the request:**
+
 ```json
 {
   "run_id": "5d41402abc4b2a76b9719d911017c592",
@@ -68,7 +71,8 @@ The client initiates the run with `POST task2/run/start`, which will return the 
 }
 ```
 
-**Response from the TREC UserSim Platform:** 
+**Response from the TREC UserSim Platform:**
+
 ```json
 {
     "conversation_id": "5969273be4de4b21bbbe4e123f030f08",
@@ -84,10 +88,6 @@ The client initiates the run with `POST task2/run/start`, which will return the 
                 "age": "18-34",
                 "highest_education": "PhD/Doctorate",
                 "proficiency_in_english": "Advanced",
-                "tools_used_for_dataset_search": [
-                    "Hugging Face Datasets",
-                    "Kaggle"
-                ]
             },
             "experience_with_ai": {
                 "trust": "Very critical",
@@ -112,6 +112,7 @@ The client initiates the run with `POST task2/run/start`, which will return the 
 `POST task2/run/continue`
 
 **Payload of the request:**
+
 ```json
 {
     "run_id": "5d41402abc4b2a76b9719d911017c592",
@@ -128,6 +129,7 @@ The client initiates the run with `POST task2/run/start`, which will return the 
 ```
 
 **Response from the TREC UserSim Platform:**
+
 ```json
 {
     "conversation_id": "5969273be4de4b21bbbe4e123f030f08",
