@@ -1,17 +1,18 @@
 # TREC UserSim Baseline Simulator
 
 > [!NOTE]
-> This repository contains a baseline implementation to get started with developing your own user simulator for **TREC UserSim**. More details about the shared task can be found on the [official website](https://trec.usersim.ai/) and in the [guidelines](https://trec.usersim.ai/guidelines). The code integrates the API of the TREC UserSim platform and provides examples for user simulators with simple response strategies. 
+> This repository contains a baseline implementation to get started with developing your own user simulator for **TREC UserSim**. More details about the shared task can be found on the [official website](https://trec.usersim.ai/) and in the [guidelines](https://trec.usersim.ai/guidelines). The code integrates the API of the TREC UserSim platform and provides examples for user simulators with simple response strategies.
 
-**Contents** 
-- [TREC UserSim Baseline Simulator](#trec-usersim-baseline-simulator)
-  - [TREC UserSim API](#trec-usersim-api)
-  - [TREC UserSim Tasks and Example Outputs](#trec-usersim-tasks-and-example-outputs)
-  - [Baseline User Simulator](#baseline-user-simulator)
-  - [Setup and Getting Started](#setup-and-getting-started)
-  - [Examples](#examples)
-    - [Task 1: Turn-level Next Utterance Prediction](#task-1-turn-level-next-utterance-prediction)
-    - [Task 2: Session-level End-to-End Conversation Generation](#task-2-session-level-end-to-end-conversation-generation)
+### Contents
+
+  * [TREC UserSim Baseline Simulator](#trec-usersim-baseline-simulator)
+    + [TREC UserSim API](#trec-usersim-api)
+    + [TREC UserSim Tasks and Example Outputs](#trec-usersim-tasks-and-example-outputs)
+    + [Baseline User Simulator](#baseline-user-simulator)
+    + [Setup and Getting Started](#setup-and-getting-started)
+    + [Examples](#examples)
+      - [Task 1: Turn-level Next Utterance Prediction](#task-1-turn-level-next-utterance-prediction)
+      - [Task 2: Session-level End-to-End Conversation Generation](#task-2-session-level-end-to-end-conversation-generation)
 
 ## TREC UserSim API
 
@@ -32,10 +33,10 @@ sequenceDiagram
 
 The two most important API endpoints are:
 
-- **`task[1|2]/[run|debug]/start`** to start and initiate the official run and debug run submission,
-- **`task[1|2]/[run|debug]/continue`** to continue completing the run submission.
+  * **`task[1|2]/[run|debug]/start`** to start and initiate the official run and debug run submission,
+  * **`task[1|2]/[run|debug]/continue`** to continue completing the run submission.
 
-A single run covers multiple scenarios (combinations of personas and goals) for which conversations with an agent have to be simulated. Information about the first scenario is returned to the user simulator in response to the first API call (cf. **`task[1|2]/[run|debug]/start`**). 
+A single run covers multiple scenarios (combinations of personas and goals) for which conversations with an agent have to be simulated. Information about the first scenario is returned to the user simulator in response to the first API call (cf. **`task[1|2]/[run|debug]/start`**).
 
 Once the user simulated has generated an utterance it is sent to the TREC UserSim platform (cf. **`task[1|2]/[run|debug]/continue`**). In response, the platform returns the corresponding interactive utterance made by the conversational agent. This process is repeated until the run is completed.
 
@@ -44,28 +45,30 @@ Once the user simulated has generated an utterance it is sent to the TREC UserSi
 
 ## TREC UserSim Tasks and Example Outputs
 
-More details about about the tasks, including example outputs, are provided here: 
+More details about about the tasks, including example outputs, are provided here:
 
-- [Task 1: Turn-level Next Utterance Prediction](./docs/task1_workflow.md)  
-- [Task 2: Session-level End-to-End Conversation Generation](./docs/task2_workflow.md).
+  * [Task 1: Turn-level Next Utterance Prediction](./docs/task1_workflow.md)  
+  * [Task 2: Session-level End-to-End Conversation Generation](./docs/task2_workflow.md).
 
 ## Baseline User Simulator
 
 The table below provides short descriptions of how the baseline simulator is implemented in [`./simulator/src/`](./simulator/src/)
 
-| File | Description | 
-|---|---| 
-| [`user_simulator.py`](./simulator/src/user_simulator.py) | Integrates all other components and coordinates the interaction with the API, the scenario handling, and the response strategy. | 
-| [`scenario.py`](./simulator/src/scenario.py) | Contains the data classes of the scenario, including the persona, goal, and persona-goal interactions. | 
-| [`response_strategy.py`](./simulator/src/response_strategy.py) | Implements different strategies of how a simulated user generates utterances. | 
-| [`api_client.py`](./simulator/src/api_client.py) | Handles the interaction with the TREC UserSim API. | 
+| File | Description |
+| --- | --- |
+| [`user_simulator.py`](./simulator/src/user_simulator.py) | Integrates all other components and coordinates the interaction with the API, the scenario handling, and the response strategy. |
+| [`scenario.py`](./simulator/src/scenario.py) | Contains the data classes of the scenario, including the persona, goal, and persona-goal interactions. |
+| [`response_strategy.py`](./simulator/src/response_strategy.py) | Implements different strategies of how a simulated user generates utterances. |
+| [`api_client.py`](./simulator/src/api_client.py) | Handles the interaction with the TREC UserSim API. |
 
 ## Setup and Getting Started
+
 1. Create virtual environment and install the required packages in `simulator/requirements.txt`.
 
 2. Create a `.env` file (adapt `.env.example` in this repository). Specifically, add `BASE_URL` (address of the backend infrastructure) and assign your team name to `TEAM_NAME`. Upon registration, you receive an authentication token, make sure to include it in `AUTH_TOKEN`.
 
 ## Examples
+
 Below, examples for completing a run (comprising multiple conversations/scenarios) based on [`complete_run.py`](./simulator/examples/complete_run.py) are provided.
 
 > [!NOTE]
@@ -74,7 +77,9 @@ Below, examples for completing a run (comprising multiple conversations/scenario
 > Please also note that for the `debug` mode, it is not possible to dump a run file once it is completed, i.e., you have to take care of the logging yourself. For the official run submission, it is possible to dump the complete run covering all completed conversations once they are completed.
 
 ### Task 1: Turn-level Next Utterance Prediction
+
 **Debug mode:**
+
 ```bash
 python -m simulator.examples.complete_run \
   --task next_utterance_prediction \
@@ -84,6 +89,7 @@ python -m simulator.examples.complete_run \
 ```
 
 **Official submission:**
+
 ```bash
 python -m simulator.examples.complete_run \
   --task next_utterance_prediction \
@@ -92,7 +98,9 @@ python -m simulator.examples.complete_run \
 ```
 
 ### Task 2: Session-level End-to-End Conversation Generation
+
 **Debug mode:**
+
 ```bash
 python -m simulator.examples.complete_run \
   --task end_to_end_conversation_generation \
@@ -102,6 +110,7 @@ python -m simulator.examples.complete_run \
 ```
 
 **Official submission:**
+
 ```bash
 python -m simulator.examples.complete_run \
   --task end_to_end_conversation_generation \
