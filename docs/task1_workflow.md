@@ -28,13 +28,15 @@ sequenceDiagram
 ## Tasks and Example Outputs
 
 > [!IMPORTANT]
-> The examples use endpoints for the official run submissions but the outputs are equivalent for the debug run endpoints, where `run` would be replaced by `debug` in the route. 
+> The examples use endpoints for the official run submissions but the outputs are equivalent for the debug run endpoints, where `run` would be replaced by `debug` in the route.
 
 ### Task 1: Turn-level Next Utterance Prediction
+>
 > [!NOTE]
 > This task focuses on a simulator’s ability to model the immediate, reactive behavior of a user at a single turn. It tests local conversational coherence and behavioral realism within an ongoing dialogue.
-> - **Input:** A scenario and a partial conversation history (a sequence of preceding user and system turns) and the simulated user’s underlying initial information need.
-> - **Output:** The single, predicted next user utterance. Participants may also include associated dialogue acts representing the semantic intent of the simulated utterance.
+>
+>   - **Input:** A scenario and a partial conversation history (a sequence of preceding user and system turns) and the simulated user’s underlying initial information need.
+>   - **Output:** The single, predicted next user utterance. Participants may also include associated dialogue acts representing the semantic intent of the simulated utterance.
 
 The client initiates the run with `POST task1/run/start`, which will return the first scenario and the chat history in the response. The client-side user simulator then generates the next utterance which is sent to the infrastructure with `POST task1/run/continue`. The response from the TREC UserSim platform contains next scenario and the corresponding chat history for which the next utterance has to be simulated. The client repeats `POST task1/run/continue` requests and simulates next utterances until the run is completed.
 
@@ -45,6 +47,7 @@ A conversation is completed, once the next utterance by the user simulator is se
 `POST task1/run/start`
 
 **Payload of the request:**
+
 ```json
 {
   "run_id": "5d41402abc4b2a76b9719d911017c592",
@@ -54,7 +57,14 @@ A conversation is completed, once the next utterance by the user simulator is se
 }
 ```
 
+Note the following constraints:
+
+  - `run_id`: string of maximum 256 characters and must be unique.
+  - `description`: few sentences describing your run submission that will be used for the overview paper of the track. It should include information about the simulator architecture, the response strategy, and any other relevant information about your submission.
+  - `team_id`: name of your team.
+
 **Response from the TREC UserSim Platform:**
+
 ```json
 {
     "conversation_id": "5969273be4de4b21bbbe4e123f030f08",
@@ -70,10 +80,6 @@ A conversation is completed, once the next utterance by the user simulator is se
                 "age": "18-34",
                 "highest_education": "PhD/Doctorate",
                 "proficiency_in_english": "Advanced",
-                "tools_used_for_dataset_search": [
-                    "Hugging Face Datasets",
-                    "Kaggle"
-                ]
             },
             "experience_with_ai": {
                 "trust": "Very critical",
@@ -144,6 +150,7 @@ A conversation is completed, once the next utterance by the user simulator is se
 `POST task1/run/continue`
 
 **Payload of the request:**
+
 ```json
 {
     "run_id": "5d41402abc4b2a76b9719d911017c592",
