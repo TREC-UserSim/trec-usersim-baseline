@@ -365,6 +365,17 @@ class SimulatorAPIClient:
         try:
             response = self.session.post(url, json=payload, timeout=self.timeout)
             logger.info(f"Response of 'continue_run': {json.dumps(response.json())}")
+
+            # Handle 504 status code as timeout on the agent side
+            if response.status_code == 504:
+                logger.info(f"Timeout on the agent side. Please try again in a few minutes. (504 status): {run_id}")
+                return APIResponse(
+                    conversation_id="",
+                    goal=Goal(id="", context="", target=""),
+                    utterance=None,
+                    is_complete=True,
+                )
+
             # Handle 428 status code as run completion
             if response.status_code == 428:
                 logger.info(f"Run completed (428 status): {run_id}")
