@@ -457,7 +457,9 @@ class UserSimulator:
                 total_turns = 0 # TODO: determine count
                 conversation_active = True
                 metrics["total_conversations"] = 1
-                response = self.get_full_session(run_id)
+                # The session endpoint has to match the mode of the run, i.e.
+                # official runs must not be resumed via the debug endpoint.
+                response = self.api_client.get_session(run_id, debug=debug)
 
                 self.scenario = response.scenario
                 self.state = ConversationState(
@@ -466,8 +468,18 @@ class UserSimulator:
                     goal=response.scenario.goal,
                     turn_count=0,
                 )
+                # Restore the chat history of the interrupted conversation so
+                # that the response strategy sees the full context.
+                for message in response.chat_messages:
+                    if message.get("participant_name") == "user":
+                        self.state.add_user_message(message.get("text", ""))
+                        self.state.turn_count += 1
+                    else:
+                        self.state.chat_history.append(
+                            {"role": "assistant", "content": message.get("text", "")}
+                        )
                 if response.utterance is not None:
-                    self.state.add_agent_message(response.utterance)
+                    self.state.last_agent_utterance = response.utterance
                 logger.info(f"Continue run {run_id} with goal: {response.scenario.goal.topic}")
 
             else:
@@ -572,7 +584,11 @@ class UserSimulator:
                     run_path.mkdir(parents=True, exist_ok=True)
                     dump_path = run_path / f"{run_id}.json"
                     with open(dump_path, "w") as f:
-                        json.dump(self.api_client.get_run_dump(run_id=run_id), f, indent=2)
+                        json.dump(
+                            self.api_client.get_run_dump(run_id=run_id, debug=debug),
+                            f,
+                            indent=2,
+                        )
                     logger.info(f"Run dump saved to {dump_path}")
                 except Exception as e:
                     logger.warning(f"Could not save run dump: {e}")
