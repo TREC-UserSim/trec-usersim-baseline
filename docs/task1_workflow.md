@@ -57,6 +57,12 @@ A conversation is completed, once the next utterance by the user simulator is se
 }
 ```
 
+Note the following constraints:
+
+  - `run_id`: string of maximum 256 characters and must be unique.
+  - `description`: few sentences describing your run submission that will be used for the overview paper of the track. It should include information about the simulator architecture, the response strategy, and any other relevant information about your submission.
+  - `team_id`: name of your team.
+
 **Response from the TREC UserSim Platform:**
 
 ```json
