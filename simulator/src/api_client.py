@@ -110,6 +110,8 @@ class APIResponse:
     is_complete: bool = False # is run completed?
     is_started: bool = False # has run been started?
     is_new_conversation: bool = False
+    # Raw chat messages as returned by the session endpoint (if any)
+    chat_messages: List[Dict[str, Any]] = field(default_factory=list)
 
     def __post_init__(self):
         # Ensure a Scenario instance is always available
@@ -203,6 +205,7 @@ class APIResponse:
             utterance=utterance,
             is_complete=data.get("is_complete", False),
             is_new_conversation=data.get("is_new_conversation", False),
+            chat_messages=data.get("chat_messages", []) or [],
         )
 
 class SimulatorAPIClient:
