@@ -28,7 +28,14 @@ sequenceDiagram
 ## Tasks and Example Outputs
 
 > [!IMPORTANT]
-> The examples use endpoints for the official run submissions but the outputs are equivalent for the debug run endpoints, where `run` would be replaced by `debug` in the route.
+>
+> - The examples use endpoints for the official run submissions but the outputs are equivalent for the debug run endpoints, where `run` would be replaced by `debug` in the route.
+> - Every request must include the authentication token you received upon registration as a bearer token in the `Authorization` header:
+>
+>   ```http
+>   Authorization: Bearer <YOUR_AUTH_TOKEN>
+>   Content-Type: application/json
+>   ```
 
 ### Task 1: Turn-level Next Utterance Prediction
 >
