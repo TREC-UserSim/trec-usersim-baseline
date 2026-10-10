@@ -402,6 +402,21 @@ class SimulatorAPIClient:
                     utterance=None,
                     is_new_conversation=True,
                 )
+
+            # Quick fix: Handle 200 for Task 1
+            if task_name == "next_utterance_prediction" and response.status_code == 200:
+                logger.info(f"New utterance predicted (200 status): {run_id}")
+                if response.content and response.content.strip():
+                    data = response.json()
+                    api_response = APIResponse.from_dict(data)
+                    api_response.is_new_conversation = True
+                    return api_response
+                return APIResponse(
+                    conversation_id="",
+                    goal=Goal(id="", context="", target=""),
+                    utterance=None,
+                    is_new_conversation=True,
+                )
             
             response.raise_for_status()
             data = response.json()
