@@ -515,8 +515,8 @@ class UserSimulator:
                         conversation_active = False
 
                     elif response.is_new_conversation:
-                        # New conversation started (201 status code received)
-                        logger.info("New conversation started (201 status received)")
+                        # New conversation started (201 status code received) OR New utterance predicted (200 status code received with new conversation_id)
+                        logger.info("New conversation started")
                         self.end_conversation()
                         conversation_count += 1
                         metrics["total_conversations"] = conversation_count
